@@ -11,7 +11,7 @@ from core.service.response_entity import ResponseEntity
 from core.decorator.response_body import response_body
 from medical_peek.model.dmo.basic_file import BasicFile, BasicFileSerializer
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class BasicFileUploadController(APIView):
@@ -21,12 +21,13 @@ class BasicFileUploadController(APIView):
     queryset = BasicFile.objects.all()
     serializer_class = BasicFileSerializer
     parser_classes = (MultiPartParser, FormParser, FileUploadParser)
+    permission_classes = (permissions.DjangoObjectPermissions,)
+    authentication_classes = (SessionAuthentication, TokenAuthentication,)
 
-    @staticmethod
     @response_body
-    def post(request):
-        log.info("Uploading a new file...")
-        log.debug("File Category: " + request.META.get('HTTP_CATEGORY'))
+    def post(self, request):
+        logger.info("Uploading a new file...")
+        logger.debug("File Category: " + request.META.get('HTTP_CATEGORY'))
         basic_file = BasicFile()
         basic_file.file = request.FILES['file']
         basic_file.file_name = request.FILES['file'].name.replace(" ", "_")
@@ -37,7 +38,7 @@ class BasicFileUploadController(APIView):
 
     def __get_urls(self, prefix = r'file-upload/?'):
         url_patterns = [
-            url(regex = prefix + r'', view = BasicFileUploadController.as_view()),
+            url(regex = rf'{prefix}', view = BasicFileUploadController.as_view()),
         ]
         return url_patterns
 

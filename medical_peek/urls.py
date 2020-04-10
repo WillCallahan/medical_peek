@@ -16,6 +16,8 @@ Including another URLconf
 from django.conf.urls import url, include
 from rest_framework import routers
 from medical_peek.model.dmo.user import UserViewSet
+# from medical_peek.controller.basic_file import basic_file_upload_controller
+from medical_peek.controller.medical_item import medical_item_detail, medical_item_list
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
@@ -25,5 +27,8 @@ router.register(r'users', UserViewSet)
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     url(r'^', include(router.urls)),
+    # url(r'^', include(basic_file_upload_controller.urls)),
+    url(r'^', include(medical_item_detail.urls)),
+    url(r'^', include(medical_item_list.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace = 'rest_framework'))
 ]
