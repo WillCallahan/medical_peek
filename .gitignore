@@ -12,6 +12,10 @@ __pycache__/
 # Jetbrains
 .idea/
 
+# Logs
+
+*.log
+
 # Distribution / packaging
 .Python
 build/
