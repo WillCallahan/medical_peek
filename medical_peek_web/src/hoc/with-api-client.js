@@ -1,13 +1,19 @@
 import React from 'react';
 import axios from 'axios';
+import { compose } from 'lodash/fp'
+import withConfiguration from "./with-configuration";
 
-const withApiClient = (WrappedComponent) => (props) => {
+const withApiClient = (WrappedComponent, timeout = 1000) => (props) => {
 	const apiClient = axios.create({
-		baseURL: 'https://medical-peek.callahanwilliam.com/dev/',
-		timeout: 1000,
-		headers: {'X-Api-Client': 'React'}
+		baseURL: props.configuration.medicalPeekAddress,
+		timeout,
+		headers: { 'X-Api-Client': 'React' }
 	});
-	return (<WrappedComponent props={{...props, apiClient}}/>)
+	const childProps = {
+		...(props || {}),
+		apiClient
+	};
+	return (<WrappedComponent {...childProps}/>)
 };
 
-export default withApiClient;
+export default compose(withConfiguration, withApiClient);

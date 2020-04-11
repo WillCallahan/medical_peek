@@ -18,9 +18,9 @@ def response_body(func):
     :return: HttpResponse containing deserialized object
     """
 
-    def response_body_wrapper(response):
-        logger.debug("Deserializing object...")
-        output = func(response)
+    def response_body_wrapper(response, format = None):
+        logger.debug('Deserializing object...')
+        output = func(response, format)
         if type(output) in (int, float, bool, str):
             return HttpResponse(output)
         elif isinstance(output, ResponseEntity):

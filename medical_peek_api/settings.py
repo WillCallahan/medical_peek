@@ -15,6 +15,8 @@ import pymysql
 from core.utility.functional import select_keys
 
 
+APP_LABEL = 'mp'
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -144,6 +146,16 @@ AWS_S3_BUCKET_NAME_STATIC = STATIC_S3_BUCKET
 AWS_S3_CUSTOM_DOMAIN = f'{STATIC_S3_BUCKET}.s3.amazonaws.com'
 STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
+# File Uploads
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_STORAGE_BUCKET_NAME = 'medical.uploads.callahanwilliam.com'
+AWS_DEFAULT_ACL = 'private'
+AWS_AUTO_CREATE_BUCKET = True
+AWS_QUERYSTRING_AUTH = True
+AWS_QUERYSTRING_EXPIRE = 3600
+AWS_S3_ENCRYPTION = False
+
 # Rest Framework
 
 REST_FRAMEWORK = {
@@ -186,7 +198,8 @@ CORS_ALLOW_HEADERS = (
     'accept',
     'origin',
     'authorization',
-    'x-csrftoken'
+    'x-csrftoken',
+    'x-api-client'
 )
 
 # Logging

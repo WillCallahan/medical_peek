@@ -21,7 +21,7 @@ const ConverterView = (props) => {
 	const onFilesChange = (e) => {
 		const rawFiles = e.target.files;
 		let actualFiles = [];
-		for (let i = 0; i < files.length; i++) {
+		for (let i = 0; i < rawFiles.length; i++) {
 			actualFiles.push(rawFiles[i]);
 		}
 		setFiles(actualFiles);
@@ -70,7 +70,10 @@ const ConverterView = (props) => {
 	};
 
 	const uploadFile = (formData) => {
-		props.apiClient.post('/medical-resource', formData);
+		props.apiClient
+			.post('/file-upload', formData, { headers: { 'Content-Type': 'multipart/form-data' }})
+			.then((r) => console.log('Uploaded file', r))
+			.catch((e) => console.log('Failed to upload file', e));
 	};
 
 	const renderValidations = (validations) => {

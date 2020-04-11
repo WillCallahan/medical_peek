@@ -9,6 +9,9 @@ __pycache__/
 # Database
 *.cnf
 
+# File Updalods
+files
+
 # Jetbrains
 .idea/
 

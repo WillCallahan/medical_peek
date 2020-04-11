@@ -18,7 +18,7 @@ from rest_framework import routers
 from medical_peek_api.model.dmo.user import UserViewSet
 from medical_peek_api.model.dmo.medical_item import MedicalItem
 from medical_peek_api.model.dmo.medical_resource import MedicalResource
-from medical_peek_api.controller.file_extractor import basic_file_upload_controller
+from medical_peek_api.controller.file_extractor import file_extractor_upload_controller
 from medical_peek_api.controller.medical_item import medical_item_detail, medical_item_list
 from medical_peek_api.controller.medical_resource import medical_resource_detail, medical_resource_list
 from django.contrib import admin
@@ -44,7 +44,7 @@ schema_view = get_swagger_view(title = 'Medical Peek API')
 urlpatterns = [
     url(r'^$', schema_view),
     url(r'^', include(router.urls)),
-    url(r'^', include(basic_file_upload_controller.urls)),
+    url(r'^', include(file_extractor_upload_controller.urls)),
     url(r'^', include(medical_item_detail.urls)),
     url(r'^', include(medical_item_list.urls)),
     url(r'^', include(medical_resource_detail.urls)),
