@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(null=True)),
                 ('nsn', models.IntegerField(max_length=13, null=True)),
                 ('msn', models.CharField(max_length=1024)),
-                ('medical_resource', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='medical_peek.MedicalResource')),
+                ('medical_resource', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to= 'medical_peek_api.MedicalResource')),
             ],
             options={
                 'db_table': 'medical_item',

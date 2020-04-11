@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from core.service.response_entity import ResponseEntity
 from core.decorator.response_body import response_body
-from medical_peek.model.dmo.basic_file import BasicFile, BasicFileSerializer
+from medical_peek_api.model.dmo.basic_file import BasicFile, BasicFileSerializer
 
 logger = logging.getLogger(__name__)
 

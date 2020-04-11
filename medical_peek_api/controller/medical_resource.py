@@ -4,7 +4,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from core.service.url import UrlProperty
-from medical_peek.model.dmo.medical_resource import MedicalResource, MedicalResourceSerializer
+from medical_peek_api.model.dmo.medical_resource import MedicalResource, MedicalResourceSerializer
 
 
 class MedicalResourceDetail(RetrieveAPIView, UrlProperty):

@@ -1,7 +1,7 @@
 from django.db import models
 from rest_framework import serializers
 
-from medical_peek.model.dmo.medical_resource import MedicalResource, MedicalResourceSerializer
+from medical_peek_api.model.dmo.medical_resource import MedicalResource, MedicalResourceSerializer
 
 
 class MedicalItem(models.Model):

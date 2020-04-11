@@ -1,4 +1,4 @@
-"""medical_peek URL Configuration
+"""medical_peek_api URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -15,12 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from rest_framework import routers
-from medical_peek.model.dmo.user import UserViewSet
-from medical_peek.model.dmo.medical_item import MedicalItem
-from medical_peek.model.dmo.medical_resource import MedicalResource
-from medical_peek.controller.basic_file import basic_file_upload_controller
-from medical_peek.controller.medical_item import medical_item_detail, medical_item_list
-from medical_peek.controller.medical_resource import medical_resource_detail, medical_resource_list
+from medical_peek_api.model.dmo.user import UserViewSet
+from medical_peek_api.model.dmo.medical_item import MedicalItem
+from medical_peek_api.model.dmo.medical_resource import MedicalResource
+from medical_peek_api.controller.basic_file import basic_file_upload_controller
+from medical_peek_api.controller.medical_item import medical_item_detail, medical_item_list
+from medical_peek_api.controller.medical_resource import medical_resource_detail, medical_resource_list
 from django.contrib import admin
 from rest_framework_swagger.views import get_swagger_view
 
