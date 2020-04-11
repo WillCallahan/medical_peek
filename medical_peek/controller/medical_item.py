@@ -9,13 +9,12 @@ from medical_peek.model.dmo.medical_item import MedicalItem, MedicalItemSerializ
 
 class MedicalItemDetail(RetrieveAPIView, UrlProperty):
     """
-    Controller for the Collection object allowing
-    access to modify individual Collection objects
+    Detailed Medical Item Information
     """
 
     queryset = MedicalItem.objects.all()
     serializer_class = MedicalItemSerializer
-    permission_classes = (permissions.DjangoModelPermissions,)
+    permission_classes = (permissions.DjangoModelPermissionsOrAnonReadOnly,)
     authentication_classes = (SessionAuthentication, TokenAuthentication,)
 
     def __get_urls(self, prefix = r'medical-item/'):
@@ -31,13 +30,12 @@ class MedicalItemDetail(RetrieveAPIView, UrlProperty):
 
 class MedicalItemList(ListAPIView, UrlProperty):
     """
-    Controller for the Collection object allowing
-    access to modify lists of Medical Item objects
+    All Detailed Medical Item Information
     """
 
     queryset = MedicalItem.objects.all()
     serializer_class = MedicalItemSerializer
-    permission_classes = (permissions.DjangoModelPermissions,)
+    permission_classes = (permissions.DjangoModelPermissionsOrAnonReadOnly,)
     authentication_classes = (SessionAuthentication, TokenAuthentication,)
 
     def __get_urls(self, prefix = r'medical-item/?'):

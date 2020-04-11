@@ -5,7 +5,7 @@
         "profile_name": "default",
         "project_name": "medical-peek",
         "runtime": "python3.6",
-        "s3_bucket": "zappa-6tsf279em"
+        "s3_bucket": "medical.callahanwilliam.com"
     },
     "dev_ap_east_1": {
         "aws_region": "ap-east-1",
@@ -73,7 +73,11 @@
     },
     "dev_us_east_2": {
         "aws_region": "us-east-2",
-        "extends": "dev"
+        "extends": "dev",
+        "vpc_config": {
+            "SubnetIds": [ "subnet-04a4064d8a0313d99", "subnet-0f73befab270a56d7" ],
+            "SecurityGroupIds": [ "sg-02e0533a3dc670c31" ]
+        }
     },
     "dev_us_gov_east_1": {
         "aws_region": "us-gov-east-1",

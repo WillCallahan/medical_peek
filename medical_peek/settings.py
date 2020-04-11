@@ -11,8 +11,12 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import pymysql
+from core.utility.functional import select_keys
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -24,12 +28,18 @@ SECRET_KEY = 'y-tuhir)&drs@w%r+(-le%rch@gu7nrvhng(0(m!(z(61(je0c'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '127.0.0.1', '1astmowyfc.execute-api.us-east-2.amazonaws.com', ]
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'jh6sghndhe.execute-api.us-east-1.amazonaws.com',
+    'covid.callahanwilliam.com'
+]
 
 # Application definition
 
 INSTALLED_APPS = [
     'rest_framework',
+    'rest_framework_swagger',
+    'django_s3_storage',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,6 +85,9 @@ WSGI_APPLICATION = 'medical_peek.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+pymysql.install_as_MySQLdb()
+pymysql.version_info = (1, 3, 13, 'final', 0)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -118,7 +131,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'medical_peek/static')
+
+STATIC_S3_BUCKET = 'medical.callahanwilliam.com'
+
+STATICFILES_STORAGE = 'django_s3_storage.storage.StaticS3Storage'
+AWS_S3_BUCKET_NAME_STATIC = STATIC_S3_BUCKET
+
+# These next two lines will serve the static files directly
+# from the s3 bucket
+AWS_S3_CUSTOM_DOMAIN = f'{STATIC_S3_BUCKET}.s3.amazonaws.com'
+STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
 # Rest Framework
 
@@ -146,6 +170,7 @@ REST_FRAMEWORK = {
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
 }
 
 # CORS
@@ -166,46 +191,57 @@ CORS_ALLOW_HEADERS = (
 
 # Logging
 
+DEFAULT_LOG_HANDLERS = ['console']
+
+ALL_LOG_HANDLERS = {
+    'file': {
+        'level': 'DEBUG',
+        'class': 'logging.handlers.TimedRotatingFileHandler',
+        'formatter': 'verbose',
+        'filename': os.path.join(BASE_DIR, 'medical_peek/resources/log/debug.log'),
+        'when': 'midnight',
+        'interval': 1,
+        'backupCount': 0,
+        'encoding': None,
+        'delay': 0,
+        'utc': False
+    },
+    'console': {
+        'level': 'DEBUG',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose'
+    }
+}
+
+LOG_HANDLERS = select_keys(os.environ.get('LOG_HANDLERS', 'console').split(','), ALL_LOG_HANDLERS)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'formatter': 'verbose',
-            'filename': os.path.join(BASE_DIR, 'medical_peek/resources/log/debug.log'),
-            'when': 'midnight',
-            'interval': 1,
-            'backupCount': 0,
-            'encoding': None,
-            'delay': 0,
-            'utc': False
-        },
-    },
+    'handlers': LOG_HANDLERS,
     'loggers': {
         'axes.watch_login': {
-            'handlers': ['file'],
+            'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'INFO',
             'propagate': True,
         },
         'django': {
-            'handlers': ['file'],
+            'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'INFO',
             'propagate': True,
         },
         'django.db': {
-            'handlers': ['file'],
+            'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'DEBUG',
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['file'],
+            'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'DEBUG',
             'propagate': False,
         },
-        'ProgrammeOfAction': {
-            'handlers': ['file'],
+        'medical_peek': {
+            'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'DEBUG',
             'propagate': True,
         },

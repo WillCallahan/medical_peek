@@ -12,6 +12,10 @@ __pycache__/
 # Jetbrains
 .idea/
 
+# Django Static Assets
+
+static/
+
 # Logs
 
 *.log

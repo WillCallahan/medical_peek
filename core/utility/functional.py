@@ -214,3 +214,17 @@ def log_message(log_level, message, x):
     """
     logger.log(log_level, message)
     return x
+
+
+def select_keys(keys: list, m: dict):
+    """
+    Selects specific keys in a map
+    :param keys: Keys to select
+    :param m: map to filter
+    :return: map
+    """
+    new_map = {}
+    for key, value in m.items():
+        if key in keys:
+            new_map[key] = value
+    return new_map
