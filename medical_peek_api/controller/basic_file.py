@@ -26,15 +26,15 @@ class BasicFileUploadController(APIView):
 
     @response_body
     def post(self, request):
-        logger.info("Uploading a new file...")
-        logger.debug("File Category: " + request.META.get('HTTP_CATEGORY'))
+        logger.info('Uploading a new file...')
+        logger.debug(f'File Category: {request.META.get("HTTP_CATEGORY")}')
         basic_file = BasicFile()
         basic_file.file = request.FILES['file']
-        basic_file.file_name = request.FILES['file'].name.replace(" ", "_")
+        basic_file.file_name = request.FILES['file'].name.replace(' ', '_')
         basic_file.mime_type = request.FILES['file'].content_type
         basic_file.category = request.META.get('HTTP_CATEGORY')
         basic_file.save()
-        return ResponseEntity("Successfully uploaded file!", status_code = status.HTTP_200_OK)
+        return ResponseEntity('Successfully uploaded file!', status_code = status.HTTP_200_OK)
 
     def __get_urls(self, prefix = r'file-upload/?'):
         url_patterns = [
