@@ -228,3 +228,12 @@ def select_keys(keys: list, m: dict):
         if key in keys:
             new_map[key] = value
     return new_map
+
+
+def flatten(arr: List[List]) -> List:
+    """
+    Flattens a list of a list
+    :param arr: List to flatten
+    :return: Flattened list
+    """
+    return reduce(lambda x, y: x + y, arr)

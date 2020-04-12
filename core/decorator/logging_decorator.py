@@ -1,0 +1,40 @@
+import logging
+
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+def statistic_logger(message, level = logging.DEBUG):
+    """
+    Logs a starting point, ending point, and duration of the execution of a function
+    :param level: Log level
+    :type level: int
+    :param message: Optional message
+    :type message: str
+    :return: Function decorator
+    :rtype: *
+    """
+    def decorator_wrapper(func):
+        def function_wrapper(*args, **kwargs):
+            formatted_message = ''
+            if message:
+                formatted_message = ' {0}'.format(message)
+            start = datetime.now()
+            logger.log(level, 'Executing {0} - [START] {1}'.format(
+                func.__name__,
+                formatted_message
+            ))
+            ret = func(*args, **kwargs)
+            end = datetime.now()
+            duration = end - start
+            logger.log(level, 'Executing {0} - [END Duration={1}] {2}'.format(
+                func.__name__,
+                duration,
+                formatted_message
+            ))
+            return ret
+
+        return function_wrapper
+
+    return decorator_wrapper

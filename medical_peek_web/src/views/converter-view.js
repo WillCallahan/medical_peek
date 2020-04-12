@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import _ from 'lodash';
 import withApiClient from "../hoc/with-api-client";
 import { renderAlerts } from "../components/errors";
+import { scrollToRef } from "../utils/navigation";
+import { buildFileName, saveAsCsv } from "../utils/files";
 
 const ConverterView = (props) => {
 
@@ -10,6 +13,7 @@ const ConverterView = (props) => {
 	const [validations, setValidations] = useState([]);
 	const [files, setFiles] = useState([]);
 	const [errors, setErrors] = useState([]);
+	const errorAlertRef = useRef(null);
 
 	const onTitleChange = (e) => {
 		setTitle(e.target.value);
@@ -70,12 +74,31 @@ const ConverterView = (props) => {
 		return formData;
 	};
 
+	const clearData = () => {
+		setFiles([]);
+	};
+
+	const saveData = (data) => {
+		const fileName = `${buildFileName(title)}.csv`;
+		const flattenedData = _.flatten(data);
+		saveAsCsv(fileName, flattenedData);
+	};
+
 	const uploadFile = (formData) => {
 		return props.apiClient
 			.post('/file-upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-			.then((r) => console.log('Uploaded file', r))
+			.then((r) => {
+				console.log('Uploaded file', r);
+				saveData(r.data);
+				clearData();
+			})
 			.catch((e) => {
-				setErrors(['Failed to process files']);
+				if (e.toString().includes('timeout')) {
+					setErrors(['The files you requested were too large. Try sending less files or smaller files.']);
+				} else {
+					setErrors(['Failed to process files']);
+				}
+				scrollToRef(errorAlertRef);
 			});
 	};
 
@@ -99,6 +122,7 @@ const ConverterView = (props) => {
 			setValidations(validations);
 		} else {
 			setValidations([]);
+			setErrors([]);
 			setIsLoading(true);
 			const formData = getFormData();
 			uploadFile(formData)
@@ -112,7 +136,7 @@ const ConverterView = (props) => {
 			<p className="lead">Extract data from images and PDFs into an Excel processable file.</p>
 			<form>
 				{renderValidations(validations)}
-				{renderAlerts(errors)}
+				<span ref={errorAlertRef}>{renderAlerts(errors)}</span>
 				<div className={"form-group"}>
 					<label htmlFor={"file-title"}>Title</label>
 					<input id={"file-title"} type={"text"} maxLength={"1024"} className={"form-control"} value={title} onChange={onTitleChange} disabled={isLoading} required={true}/>
@@ -131,8 +155,8 @@ const ConverterView = (props) => {
 					<input id="file-upload" type="file" className="form-control-file" disabled={isLoading} onChange={onFilesChange} multiple={true} accept={"image/jpeg,image/png,.pdf"} required={true}/>
 				</div>
 				<button type="button" className="btn btn-primary" onClick={onSubmit} disabled={isLoading}>
-					{isLoading && <span className="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"/>}
 					Submit
+					{isLoading && <span className="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"/>}
 				</button>
 			</form>
 		</>

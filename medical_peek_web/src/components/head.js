@@ -4,7 +4,10 @@ const headContent = () => {
 	return (
 		<header>
 			<nav className="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-				<a className="navbar-brand" href="#/home">Medical Peek</a>
+				<a className="navbar-brand" href="#/home">
+					<img className={"mr-3"} src={`${process.env.PUBLIC_URL}/mountain-peek-30x30.png`} alt="Medical Peek Logo"/>
+					Medical Peek
+				</a>
 				<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
 					<span className="navbar-toggler-icon"/>
 				</button>

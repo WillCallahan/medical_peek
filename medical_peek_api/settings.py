@@ -231,7 +231,7 @@ ALL_LOG_HANDLERS = {
     'console': {
         'level': 'DEBUG',
         'class': 'logging.StreamHandler',
-        'formatter': 'verbose'
+        'formatter': 'simple'
     }
 }
 
@@ -278,12 +278,21 @@ LOGGING = {
             'format': '%(remote_addr)s %(username)s "%(request_method)s '
                       '%(path_info)s %(server_protocol)s" %(http_user_agent)s '
                       '%(message)s %(asctime)s',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z'
         },
         'verbose': {
-            'format': '%(levelname)s - %(asctime)s - %(module)s %(message)s'
+            'format': '[Date=%(asctime)s'
+                      ' MessageType=%(levelname)s'
+                      ' ProcessName=%(processName)s'
+                      ' File=%(name)-15s'
+                      ' Thread=%(thread)d] %(message)s',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '[Date=%(asctime)s'
+                      ' MessageType=%(levelname)s'
+                      ' File=%(name)-15s] %(message)s',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z'
         },
     }
 }
