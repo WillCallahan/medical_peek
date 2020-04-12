@@ -1,11 +1,11 @@
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 import React from 'react';
 import './App.css';
-import mainContent from './components/content'
-import headContent from './components/head'
-import footContent from './components/foot'
-import converterView from './views/converter-view'
+import mainContent from './components/content';
+import headContent from './components/head';
+import footContent from './components/foot';
+import converterView from './views/converter-view';
 
 const App = () => {
 	return (

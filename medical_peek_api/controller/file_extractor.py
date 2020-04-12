@@ -1,16 +1,18 @@
 import logging
-import uuid
 import re
+import uuid
 
 from django.conf.urls import url
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.parsers import FileUploadParser, FormParser, MultiPartParser
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.service.response_entity import ResponseEntity
-from core.decorator.response_body import response_body
+from core.model.j_send import JSend
+from core.service.generic_extractor import extract_tables_from_file
+from core.utility.functional import thread_first
 from medical_peek_api.model.dmo.file_extractor import FileExtractor, FileExtractorSerializer
 
 logger = logging.getLogger(__name__)
@@ -27,32 +29,52 @@ class FileExtractorUploadController(APIView):
     authentication_classes = (SessionAuthentication, TokenAuthentication,)
 
     @classmethod
-    def cleanup_file_name(cls, file_name: str) -> str:
+    def _build_file_name(cls, file_name: str, file_uuid: uuid) -> str:
         pattern = re.compile(r'[^\w\.]')
-        new_file_name = re.sub(pattern, '', file_name)
+        file_pass_1 = str(file_name).replace(' ', '_')
+        file_pass_2 = re.sub(pattern, '', file_pass_1)
+        new_file_name = f'{file_uuid}-{file_pass_2}'
         return new_file_name
 
     @classmethod
-    def save_files(cls, request, title, description):
+    def _save_files(cls, request, title, description):
+        files = []
         file_uuid = uuid.uuid1()
-        for i, file_name in enumerate(request.FILES):
+        for i, form_field in enumerate(request.FILES):
+            file = request.FILES[form_field]
+            actual_file_name = file.name
+            file.name = cls._build_file_name(actual_file_name, file_uuid)
             file_extractor = FileExtractor()
             file_extractor.title = title
             file_extractor.description = description
             file_extractor.group_uuid = file_uuid
-            file_extractor.file = request.FILES[file_name]
-            file_extractor.file_name = cls.cleanup_file_name(request.FILES[file_name].name)
-            file_extractor.mime_type = request.FILES[file_name].content_type
+            file_extractor.file = file
+            file_extractor.file_name = actual_file_name
+            file_extractor.mime_type = request.FILES[form_field].content_type
             file_extractor.save()
+            files.append(file_extractor)
+        return files
 
-    @response_body
     def post(self, request, format = None):
         logger.info('Uploading a new file...')
         title = request.data.get('title', None)
         description = request.data.get('description', None)
         logger.debug(f'Got file information  title={title} description={description}')
-        self.save_files(request, title, description)
-        return ResponseEntity('Successfully uploaded file!', status_code = status.HTTP_200_OK)
+        extraction_results = thread_first(
+            self._save_files(request, title, description),
+            (map, lambda f: f.file.file,),
+            (map, extract_tables_from_file,),
+            (list,),
+        )
+        return Response(
+            JSend(
+                message = 'Successfully uploaded file(s)!',
+                data = extraction_results,
+                status = status.HTTP_201_CREATED,
+                links = []
+            ),
+            status = status.HTTP_201_CREATED
+        )
 
     def __get_urls(self, prefix = r'file-upload/?'):
         url_patterns = [

@@ -10,7 +10,8 @@ module.exports = {
 		"jasmine": true
 	},
 	"rules": {
-		"react/prop-types": 0
+		"react/prop-types": 0,
+		"semi": [2, "always"]
 	},
 	"settings": {
 		"import/resolver": {

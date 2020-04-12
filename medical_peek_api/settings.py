@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'core.middleware.exception_handler_middleware.ExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.request_logger_middleware.RequestLogMiddleware',
 ]
 
 ROOT_URLCONF = 'medical_peek_api.urls'
@@ -163,12 +165,14 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     #
     'DEFAULT_PARSER_CLASSES': (
+        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.FileUploadParser',
     ),
     'DEFAULT_RENDERER_CLASSES': (
+        'core.utility.json_renderer.JSendCamelCaseJsonRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
@@ -182,7 +186,8 @@ REST_FRAMEWORK = {
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
     ),
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'medical_peek_api.controller.exception_handler_controller.rest_exception_handler',
 }
 
 # CORS
@@ -201,6 +206,10 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-api-client'
 )
+
+# Multi Threading
+
+MAX_POOL_SIZE = 10
 
 # Logging
 
@@ -254,6 +263,11 @@ LOGGING = {
             'propagate': False,
         },
         'medical_peek_api': {
+            'handlers': DEFAULT_LOG_HANDLERS,
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'core': {
             'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'DEBUG',
             'propagate': True,

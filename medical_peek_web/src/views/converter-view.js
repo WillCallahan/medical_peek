@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
-import _ from 'lodash';
+import React, { useState } from 'react';
 import withApiClient from "../hoc/with-api-client";
+import { renderAlerts } from "../components/errors";
 
 const ConverterView = (props) => {
 
@@ -9,6 +9,7 @@ const ConverterView = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [validations, setValidations] = useState([]);
 	const [files, setFiles] = useState([]);
+	const [errors, setErrors] = useState([]);
 
 	const onTitleChange = (e) => {
 		setTitle(e.target.value);
@@ -42,7 +43,7 @@ const ConverterView = (props) => {
 		if (file && file.current && file.current.title) {
 			return ` - (${file.current.title})`;
 		}
-		return ''
+		return '';
 	};
 
 	const getFormData = () => {
@@ -70,14 +71,26 @@ const ConverterView = (props) => {
 	};
 
 	const uploadFile = (formData) => {
-		props.apiClient
-			.post('/file-upload', formData, { headers: { 'Content-Type': 'multipart/form-data' }})
+		return props.apiClient
+			.post('/file-upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 			.then((r) => console.log('Uploaded file', r))
-			.catch((e) => console.log('Failed to upload file', e));
+			.catch((e) => {
+				setErrors(['Failed to process files']);
+			});
 	};
 
 	const renderValidations = (validations) => {
-		return _.map(validations, v => (<p>{v}</p>));
+		if (validations.length) {
+			return (
+				<div className="bd-callout bd-callout-warning">
+					<h5>Please correct form errors</h5>
+					<ul>
+						{validations.map((v, i) => (<li key={`form-validation-${i}`} className={'text-danger font-weight-bold'}>{v}</li>))}
+					</ul>
+				</div>
+			);
+		}
+		return (<></>);
 	};
 
 	const onSubmit = () => {
@@ -85,10 +98,11 @@ const ConverterView = (props) => {
 		if (validations.length) {
 			setValidations(validations);
 		} else {
+			setValidations([]);
 			setIsLoading(true);
 			const formData = getFormData();
-			uploadFile(formData);
-			setIsLoading(false);
+			uploadFile(formData)
+				.finally(() => setIsLoading(false));
 		}
 	};
 
@@ -98,9 +112,10 @@ const ConverterView = (props) => {
 			<p className="lead">Extract data from images and PDFs into an Excel processable file.</p>
 			<form>
 				{renderValidations(validations)}
+				{renderAlerts(errors)}
 				<div className={"form-group"}>
 					<label htmlFor={"file-title"}>Title</label>
-					<input id={"file-title"} type={"text"} maxLength={"1024"} className={"form-control"} value={title} onChange={onTitleChange} disabled={isLoading}/>
+					<input id={"file-title"} type={"text"} maxLength={"1024"} className={"form-control"} value={title} onChange={onTitleChange} disabled={isLoading} required={true}/>
 				</div>
 				<div className={"form-group"}>
 					<label htmlFor={"file-description"}>Description</label>
@@ -110,12 +125,18 @@ const ConverterView = (props) => {
 				</div>
 				<div className="form-group">
 					<label htmlFor="file-upload">File Upload {getFileTitle(files)}</label>
-					<input id="file-upload" type="file" className="form-control-file" disabled={isLoading} onChange={onFilesChange}/>
+					<ul className="list-group mb-3">
+						{files.map(f => (<li key={`li-file-${f.name}`} className="list-group-item">{f.name}</li>))}
+					</ul>
+					<input id="file-upload" type="file" className="form-control-file" disabled={isLoading} onChange={onFilesChange} multiple={true} accept={"image/jpeg,image/png,.pdf"} required={true}/>
 				</div>
-				<button type="button" className="btn btn-primary" onClick={onSubmit}>Submit</button>
+				<button type="button" className="btn btn-primary" onClick={onSubmit} disabled={isLoading}>
+					{isLoading && <span className="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"/>}
+					Submit
+				</button>
 			</form>
 		</>
 	);
 };
 
-export default withApiClient(ConverterView);
+export default withApiClient(ConverterView, 30000);
