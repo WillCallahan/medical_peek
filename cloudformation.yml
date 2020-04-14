@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Medical Peek Serverless Stack
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Description: Name of the Network Stack
+
+  CodeS3Bucket:
+    Type: String
+    Description: Application Code S3 Bucket Name
+
+  CodeS3Key:
+    Type: String
+    Description: Key to the Code in the S3 Bucket
+
+Resources:
+  MedicalPeekIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-lambda-role
+      Description: Generic Fargate role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Tags:
+          - Key: Service
+            Value: IAM
+          - Key: Provider
+            Value: AWS
+          - Key: Name
+            Value: !Sub ${AWS::StackName}-lambda-role
+
+  MedicalSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Medical Peek Security Group
+      GroupDescription: Medical Peek Security Group
+      VpcId:
+        Fn::ImportValue:
+          !Sub ${NetworkStackName}-Vpc
+      Tags:
+        - Key: Service
+          Value: EC2
+        - Key: Provider
+          Value: AWS
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-lambda-sg
+
+  MedicalPeekApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ${AWS::StackName}-api
+      StageName: v1
+      Cors:
+        AllowMethods: "'OPTIONS,POST,GET,PUT,DELETE'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'http://localhost:3000,https://medical-peek.callahanwilliam.com'"
+#      Tags:
+#        - Key: Service
+#          Value: Api Gateway
+#        - Key: Provider
+#          Value: AWS
+#        - Key: Name
+#          Value: !Sub ${AWS::StackName}-api-gateway
+
+
+  MedicalPeekLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Medical Peek AWS Lambda
+      CodeUri:
+        Bucket: !Sub ${CodeS3Bucket}
+        Key: !Sub ${CodeS3Key}
+      Runtime: python3.6
+      Handler: handler.lambda_handler
+      FunctionName: !Sub ${AWS::StackName}-lambda
+      MemorySize: 1024
+      Role: !GetAtt MedicalPeekIamRole.Arn
+      Timeout: 60
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref MedicalSecurityGroup
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub ${NetworkStackName}-PrivateSubnet1
+          - Fn::ImportValue:
+              !Sub ${NetworkStackName}-PrivateSubnet2
+#        VpcId:
+#          Fn::ImportValue:
+#            !Sub ${NetworkStackName}-Vpc
+#      Tags:
+#        - Key: Service
+#          Value: Lambda
+#        - Key: Provider
+#          Value: AWS
+#        - Key: Name
+#          Value: !Sub ${AWS::StackName}-lambda
+      Events:
+        MedicalPeekApiGateway:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref MedicalPeekApiGateway
