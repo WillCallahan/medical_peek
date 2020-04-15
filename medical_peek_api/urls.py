@@ -43,6 +43,7 @@ schema_view = get_swagger_view(title = 'Medical Peek API')
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     url(r'^$', schema_view),
+    url(r'^/$', schema_view),
     url(r'^', include(router.urls)),
     url(r'^', include(file_extractor_upload_controller.urls)),
     url(r'^', include(medical_item_detail.urls)),

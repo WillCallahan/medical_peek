@@ -6,8 +6,7 @@
         "project_name": "medical-peek",
         "runtime": "python3.6",
         "s3_bucket": "medical.callahanwilliam.com",
-        "keep_warm ": false,
-        "slim_handler": true
+        "keep_warm": false
     },
     "dev_ap_east_1": {
         "aws_region": "ap-east-1",
