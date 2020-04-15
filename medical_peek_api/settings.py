@@ -31,9 +31,10 @@ SECRET_KEY = 'y-tuhir)&drs@w%r+(-le%rch@gu7nrvhng(0(m!(z(61(je0c'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'jh6sghndhe.execute-api.us-east-1.amazonaws.com',
-    'covid.callahanwilliam.com'
+    # '127.0.0.1',
+    # 'jh6sghndhe.execute-api.us-east-1.amazonaws.com',
+    # 'covid.callahanwilliam.com'
+    '*'
 ]
 
 # Application definition

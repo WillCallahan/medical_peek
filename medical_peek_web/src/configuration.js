@@ -8,7 +8,7 @@ const devConfiguration = {
 };
 
 const prodConfiguration = {
-	medicalPeekAddress: 'https://medical-peek-api.callahanwilliam.com/api'
+	medicalPeekAddress: 'https://medical-peek-api.callahanwilliam.com/api/v1'
 };
 
 const getConfiguration = () => {
