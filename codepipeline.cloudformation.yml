@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  Crux Node Server CI/CD Stack
+  Medical Peek Server CI/CD Stack
 
 Parameters:
   AccountName:
@@ -27,18 +27,18 @@ Parameters:
   RepoLocation:
     Description: HTTPS clone URL to the repository that contains the source code and build spec
     Type: String
-    Default: https://github.com/WillCallahan/crux-docker.git
+    Default: https://github.com/WillCallahan/medical_peek.git
 
   CodePipelineArtifactPrefix:
     Description: Artifact name prefix to use in CodePipeline
     Type: String
     AllowedPattern: "[a-z0-9_]*"
-    Default: crux_codepipeline
+    Default: medical_peek_codepipeline
 
-  CruxStackName:
-    Description: Name of the Crux Node Stack to Create
+  MedicalPeekStackName:
+    Description: Name of the Medical Peek Stack to Create
     Type: String
-    Default: crux-stack
+    Default: medical-peek-stack
 
   BucketStackName:
     Description: Name of the S3 Stack
@@ -67,7 +67,7 @@ Parameters:
 
 Resources:
 
-  CruxCodeBuildLogSteam:
+  MedicalPeekCodeBuildLogSteam:
     Type: AWS::Logs::LogStream
     Properties:
       LogGroupName:
@@ -75,7 +75,7 @@ Resources:
           !Sub ${LoggingStackName}-CodeBuildLogGroupName
       LogStreamName: !Sub ${AWS::StackName}-stream
 
-  CruxCodeBuild:
+  MedicalPeekCodeBuild:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -92,7 +92,7 @@ Resources:
         Modes:
           - LOCAL_CUSTOM_CACHE
         Type: S3
-      Description: !Sub Crux (${AWS::StackName})
+      Description: !Sub Medical Peek (${AWS::StackName})
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
@@ -108,7 +108,7 @@ Resources:
             Fn::ImportValue:
               !Sub ${LoggingStackName}-CodeBuildLogGroupName
           Status: ENABLED
-          StreamName: !Ref CruxCodeBuildLogSteam
+          StreamName: !Ref MedicalPeekCodeBuildLogSteam
       Name: !Sub ${AWS::StackName}-code-build
       QueuedTimeoutInMinutes: 30
       ServiceRole:
@@ -140,7 +140,7 @@ Resources:
           Fn::ImportValue:
             !Sub ${NetworkStackName}-Vpc
 
-  CruxEcrCodeBuild:
+  MedicalPeekEcrCodeBuild:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -150,7 +150,7 @@ Resources:
       Cache:
         Location: NO_CACHE
         Type: NO_CACHE
-      Description: !Sub Crux (${AWS::StackName}-ecr)
+      Description: !Sub Medical Peek (${AWS::StackName}-ecr)
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
@@ -170,7 +170,7 @@ Resources:
             Fn::ImportValue:
               !Sub ${LoggingStackName}-CodeBuildLogGroupName
           Status: ENABLED
-          StreamName: !Ref CruxCodeBuildLogSteam
+          StreamName: !Ref MedicalPeekCodeBuildLogSteam
       Name: !Sub ${AWS::StackName}-ecr-code-build
       QueuedTimeoutInMinutes: 30
       ServiceRole:
@@ -202,7 +202,7 @@ Resources:
           Fn::ImportValue:
             !Sub ${NetworkStackName}-Vpc
 
-  CruxCodePipeline:
+  MedicalPeekCodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: !Sub ${AWS::StackName}
@@ -224,7 +224,7 @@ Resources:
                 - Name: !Sub ${CodePipelineArtifactPrefix}_source
               Configuration:
                 Owner: WillCallahan
-                Repo: crux-docker
+                Repo: medical-peek-docker
                 Branch: !Sub ${GitHubBranchName}
                 OAuthToken: !Ref GitHubOauthToken
                 PollForSourceChanges: false
@@ -244,7 +244,7 @@ Resources:
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref CruxCodeBuild
+                ProjectName: !Ref MedicalPeekCodeBuild
               RunOrder: 2
             - Name: EcrPushAction
               Namespace: !Sub ${CodePipelineArtifactPrefix}_ecr_push_ns
@@ -260,7 +260,7 @@ Resources:
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref CruxEcrCodeBuild
+                ProjectName: !Ref MedicalPeekEcrCodeBuild
                 PrimarySource: !Sub ${CodePipelineArtifactPrefix}_source
                 EnvironmentVariables:
                   !Sub
@@ -310,7 +310,7 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
-                StackName: !Ref CruxStackName
+                StackName: !Ref MedicalPeekStackName
                 Capabilities: CAPABILITY_IAM
                 RoleArn:
                   Fn::ImportValue:
@@ -326,5 +326,5 @@ Resources:
             !Sub ${BucketStackName}-CodePipelineBucketName
 
 Outputs:
-  CruxCodeBuildName:
-    Value: !Ref CruxCodeBuild
+  MedicalPeekCodeBuildName:
+    Value: !Ref MedicalPeekCodeBuild

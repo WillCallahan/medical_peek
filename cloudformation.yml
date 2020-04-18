@@ -1,116 +1,271 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
+AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  Medical Peek Serverless Stack
+  Medical Peek ECS Stack
 
 Parameters:
   NetworkStackName:
     Type: String
     Description: Name of the Network Stack
+    Default: network-stack
 
-  CodeS3Bucket:
+  EcsClusterStackName:
     Type: String
-    Description: Application Code S3 Bucket Name
+    Description: Name of the Ecs Cluster Stack
+    Default: ecs-cluster-stack
 
-  CodeS3Key:
+  SecurityStackName:
     Type: String
-    Description: Key to the Code in the S3 Bucket
+    Description: Name of the Security Stack
+    Default: security-stack
+
+  LoggingStackName:
+    Description: Name of the Logging Stack
+    Type: String
+    Default: logging-stack
+
+  EcrDockerImage:
+    Description: ECR Container Image of the Medical Peek
+    Type: String
+    Default: medical-peek/api:latest
+
+  CertificateArn:
+    Description: SSL Certificate to use for the Medical Peek Api
+    Type: String
 
 Resources:
-  MedicalPeekIamRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-lambda-role
-      Description: Generic Fargate role
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ecs-tasks.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      Tags:
-          - Key: Service
-            Value: IAM
-          - Key: Provider
-            Value: AWS
-          - Key: Name
-            Value: !Sub ${AWS::StackName}-lambda-role
 
-  MedicalSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+  MedicalPeekLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      GroupName: Medical Peek Security Group
-      GroupDescription: Medical Peek Security Group
+      IpAddressType: ipv4
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: 300
+        - Key: access_logs.s3.enabled
+          Value: false
+        - Key: deletion_protection.enabled
+          Value: false
+      Name: !Sub ${AWS::StackName}-elb
+      Scheme: internal
+      SecurityGroups:
+        - !Ref MedicalPeekLoabBalancerSecurityGroup
+      Subnets:
+        - Fn::ImportValue:
+            !Sub ${NetworkStackName}-PrivateSubnet1
+        - Fn::ImportValue:
+            !Sub ${NetworkStackName}-PrivateSubnet2
+      Tags:
+        - Key: Service
+          Value: Medical Peek
+        - Key: Provider
+          Value: Juxt
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-elb
+      Type: application
+
+  MedicalPeekHttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref MedicalPeekTargetGroup
+          Type: forward
+          Order: 1
+      LoadBalancerArn: !Ref MedicalPeekLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      SslPolicy: ELBSecurityPolicy-2016-08
+
+  MedicalPeekHttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Host: '#{host}'
+            Path: '/#{path}'
+            Port: 443
+            Protocol: HTTPS
+            Query: '#{query}'
+            StatusCode: HTTP_301
+            Order: 1
+      LoadBalancerArn: !Ref MedicalPeekLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  MedicalPeekTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: MedicalPeekLoadBalancer
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 20
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 80
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200
+      Name: !Sub ${AWS::StackName}-elb-tg
+      TargetType: ip
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
       VpcId:
         Fn::ImportValue:
           !Sub ${NetworkStackName}-Vpc
       Tags:
         - Key: Service
-          Value: EC2
+          Value: Medical Peek
         - Key: Provider
-          Value: AWS
+          Value: Callahan William
         - Key: Name
-          Value: !Sub ${AWS::StackName}-lambda-sg
+          Value: !Sub ${AWS::StackName}-elb-tg
 
-  MedicalPeekApiGateway:
-    Type: AWS::Serverless::Api
+  MedicalPeekService:
+    Type: AWS::ECS::Service
     Properties:
-      Name: !Sub ${AWS::StackName}-api
-      StageName: v1
-      Cors:
-        AllowMethods: "'OPTIONS,POST,GET,PUT,DELETE'"
-        AllowHeaders: "'*'"
-        AllowOrigin: "'http://localhost:3000,https://medical-peek.callahanwilliam.com'"
-#      Tags:
-#        - Key: Service
-#          Value: Api Gateway
-#        - Key: Provider
-#          Value: AWS
-#        - Key: Name
-#          Value: !Sub ${AWS::StackName}-api-gateway
+      ServiceName: !Sub ${AWS::StackName}
+      Cluster:
+        Fn::ImportValue:
+          !Sub ${EcsClusterStackName}-DatabaseClusterArn
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 50
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref MedicalPeekTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref MedicalPeekHostSecurityGroup
+          Subnets:
+            - Fn::ImportValue:
+                !Sub ${NetworkStackName}-PrivateSubnet1
+            - Fn::ImportValue:
+                !Sub ${NetworkStackName}-PrivateSubnet2
+      LoadBalancers:
+        - ContainerName: !Sub ${AWS::StackName}-ecs-cd
+          ContainerPort: 80
+          TargetGroupArn: !Ref MedicalPeekTargetGroup
+      Tags:
+        - Key: Service
+          Value: Medical Peek
+        - Key: Provider
+          Value: Callahan William
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ecs-service
 
-
-  MedicalPeekLambda:
-    Type: AWS::Serverless::Function
+  MedicalPeekTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
     Properties:
-      Description: Medical Peek AWS Lambda
-      CodeUri:
-        Bucket: !Sub ${CodeS3Bucket}
-        Key: !Sub ${CodeS3Key}
-      Runtime: python3.6
-      Handler: handler.lambda_handler
-      FunctionName: !Sub ${AWS::StackName}-lambda
-      MemorySize: 1024
-      Role: !GetAtt MedicalPeekIamRole.Arn
-      Timeout: 60
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref MedicalSecurityGroup
-        SubnetIds:
-          - Fn::ImportValue:
-              !Sub ${NetworkStackName}-PrivateSubnet1
-          - Fn::ImportValue:
-              !Sub ${NetworkStackName}-PrivateSubnet2
-#        VpcId:
-#          Fn::ImportValue:
-#            !Sub ${NetworkStackName}-Vpc
-#      Tags:
-#        - Key: Service
-#          Value: Lambda
-#        - Key: Provider
-#          Value: AWS
-#        - Key: Name
-#          Value: !Sub ${AWS::StackName}-lambda
-      Events:
-        MedicalPeekApiGateway:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: ANY
-            RestApiId: !Ref MedicalPeekApiGateway
+      Family: !Sub ${AWS::StackName}-task
+      Cpu: 1024
+      Memory: 2GB
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ContainerDefinitions:
+        - Name: !Sub ${AWS::StackName}-ecs-cd
+          DisableNetworking: false
+          PortMappings:
+            - ContainerPort: 8000
+              HostPort: 80
+              Protocol: tcp
+          Privileged: false
+          ReadonlyRootFilesystem: false
+          DockerLabels:
+            Name: !Sub ${AWS::StackName}-task
+          Essential: true
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrDockerImage}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Fn::ImportValue:
+                  !Sub ${LoggingStackName}-DatabaseLogGroupName
+              awslogs-region: !Sub ${AWS::Region}
+              awslogs-stream-prefix: !Sub ${AWS::StackName}
+          Environment:
+            - Name: SERVER_PORT
+              Value: 80
+            - Name: WORKER_THREADS
+              Value: 3
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Sub ${SecurityStackName}-FargateReadonlyRoleArn
+      TaskRoleArn:
+        Fn::ImportValue:
+          !Sub ${SecurityStackName}-FargateReadonlyRoleArn
+      Tags:
+        - Key: Service
+          Value: Medical Peek
+        - Key: Provider
+          Value: Callahan William
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ecs-cd
+
+  MedicalPeekLoabBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-elb-sg
+      GroupDescription: Seciruty Group for the Medical Peek Elastic Load Balancer
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: '0.0.0.0/0'
+      VpcId:
+        Fn::ImportValue:
+          !Sub ${NetworkStackName}-Vpc
+      Tags:
+        - Key: Service
+          Value: Medical Peek
+        - Key: Provider
+          Value: Callahan William
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-elb-sg
+
+  MedicalPeekHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-host-sg
+      GroupDescription: Seciruty Group for the Medical Peek
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref MedicalPeekLoabBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref MedicalPeekLoabBalancerSecurityGroup
+      VpcId:
+        Fn::ImportValue:
+          !Sub ${NetworkStackName}-Vpc
+      Tags:
+        - Key: Service
+          Value: Medical Peek
+        - Key: Provider
+          Value: Callahan William
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-host-sg
+
+Outputs:
+  MedicalPeekLoadBalancerDnsName:
+    Description: Medical Peek Load Balancer Dns Name
+    Value: !GetAtt MedicalPeekLoadBalancer.DNSName

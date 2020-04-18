@@ -1,0 +1,53 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: us-east-1
+    AWS_ECR_REPOSITORY_URI: arn:<AWS_PARTITION>:ecr:<AWS_REGION>:<AWS_ACCOUNT_ID>:<ECR_REPOSITORY>
+    BUILD_ARTIFACT_NAME: <BUILD_ARTIFACT_NAME>
+    BUILD_VERSION: <BUILD_VERSION>
+
+  exported-variables:
+    - BUILD_VERSION
+    - IMAGE_TAG
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+    commands:
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=overlay&
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+      - SOURCE_DIRECTORY="${CODEBUILD_SRC_DIR}"
+      - BUILD_ENV_NAME="CODEBUILD_SRC_DIR_${BUILD_ARTIFACT_NAME}"
+      - BUILD_DIRECTORY=$(eval "echo \$${BUILD_ENV_NAME}")
+      - IMAGE_TAG=${BUILD_VERSION:=latest}
+      - echo "SOURCE_DIRECTORY ${SOURCE_DIRECTORY}"
+      - echo "BUILD_ENV_NAME ${BUILD_ENV_NAME}"
+      - echo "BUILD_DIRECTORY ${BUILD_DIRECTORY}"
+      - echo "BUILD_VERSION ${BUILD_VERSION}"
+
+  pre_build:
+    commands:
+      - aws --version
+      - $(aws ecr get-login --region ${AWS_REGION} --no-include-email)
+
+  build:
+    commands:
+      - cd "${BUILD_DIRECTORY}"
+      - docker build -t ${AWS_ECR_REPOSITORY_URI}:latest .
+      - docker tag ${AWS_ECR_REPOSITORY_URI}:latest ${AWS_ECR_REPOSITORY_URI}:${IMAGE_TAG}
+
+  post_build:
+    commands:
+      - echo '{}' > cloudformation-template-configuration.json
+      - cat cloudformation-template-configuration.json
+      - docker push ${AWS_ECR_REPOSITORY_URI}:latest
+      - docker push ${AWS_ECR_REPOSITORY_URI}:${IMAGE_TAG}
+
+artifacts:
+  base-directory: ${BUILD_DIRECTORY}
+  files:
+    - 'cloudformation-template-configuration.json'
+  discard-paths: yes
+  name: medical-peek-docker-ecr-standalone-${BUILD_VERSION}

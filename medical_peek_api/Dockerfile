@@ -2,7 +2,7 @@ FROM alpine:3.11.5
 
 WORKDIR /opt/app
 
-EXPOSE 80
+EXPOSE 8000
 
 COPY . ./
 COPY medical_peek_api/resources/start-server.sh ./
@@ -26,6 +26,7 @@ RUN apk add --no-cache --update \
   pip3 install -r requirements.txt ; \
   adduser -D www-daemon ; \
   chown -R www-daemon:www-daemon /opt/app ; \
-  chmod -R 755 /opt/app
+  chmod -R 755 /opt/app ; \
+  mkdir -p /run/nginx
 
 CMD ["/opt/app/start-server.sh"]
