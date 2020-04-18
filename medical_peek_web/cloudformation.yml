@@ -16,12 +16,12 @@ Resources:
   MedicalPeekStaticFilesBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub ${Environment}.${BranchName}.medical-peek.callahanwilliam
+      BucketName: !Sub ${Environment}.${BranchName}.medical-peek-web.callahanwilliam
       WebsiteConfiguration:
         IndexDocument: index.html
 
   MedicalPeedCloudFrontDistrobution:
-    Type: 'AWS::CloudFront::Distribution'
+    Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Origins:
@@ -47,26 +47,26 @@ Resources:
           CloudFrontDefaultCertificate: 'true'
 
   MedicalPeekStaticFilesBucketPolicy:
-    Type: 'AWS::S3::BucketPolicy'
+    Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref MedicalPeekStaticFilesBucket
       PolicyDocument:
         Statement:
           - Sid: ReadAccess
             Action:
-              - "s3:GetObject"
+              - s3:GetObject
             Effect: "Allow"
             Resource: !Sub
               - "${BucketArn}/*"
               - BucketArn: !GetAtt MedicalPeekStaticFilesBucket.Arn
             Principal: "*"
 
-#  MedicalPeekRoute53:
-#    Type: 'AWS::Route53::RecordSet'
-#    Properties:
-#      AliasTarget:
-#        HostedZoneName:
-#        Name: !Sub ${Environment}.${BranchName}.medical-peek.callahanwilliam
-#        Type: A
-#        HostedZoneId: Z2FDTNDATAQYW2
-
+  MedicalPeekRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName: !GetAtt MedicalPeedCloudFrontDistrobution.DomainName
+      HostedZoneName: ${Environment}.${BranchName}.callahanwilliam.com.
+      Name: !Sub ${Environment}.${BranchName}.medical-peek-web.callahanwilliam.
+      Type: A

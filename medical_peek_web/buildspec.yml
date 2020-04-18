@@ -1,0 +1,44 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: us-east-1
+    CODE_S3_BUCKET: dev.master.medical-peek.callahanwilliam.com
+    MEDICAL_PEEK_API_URL: 'https://medical-peek-api.callahanwilliam.com'
+
+  exported-variables:
+    - BUILD_VERSION
+    - IMAGE_TAG
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+    commands:
+      - SOURCE_DIRECTORY="${CODEBUILD_SRC_DIR}/medical_peek_web"
+      - UTC_DATE=$(date --utc +%FT%H-%M-%S%Z)
+      - COMMIT_HASH=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION} | cut -c1-8)
+      - BUILD_VERSION=${BRANCH_NAME}-${UTC_DATE}-${COMMIT_HASH}
+      - IMAGE_TAG=${BUILD_VERSION:=latest}
+      - echo "SOURCE_DIRECTORY ${SOURCE_DIRECTORY}"
+      - echo "BUILD_VERSION ${BUILD_VERSION}"
+      - cd "${SOURCE_DIRECTORY}"
+      - npm run install
+
+  build:
+    commands:
+      - npm run build
+
+  post_build:
+    commands:
+      - echo '{}' > cloudformation-template-configuration.json
+      - cat cloudformation-template-configuration.json
+      - aws s3 cp ./* "s3://${CODE_S3_BUCKET}/"
+
+artifacts:
+  base-directory: ${SOURCE_DIRECTORY}
+  files:
+    - 'cloudformation-template-configuration.json'
+    - 'build/*'
+  discard-paths: yes
+  name: medical-peek-web-standalone-${BUILD_VERSION}

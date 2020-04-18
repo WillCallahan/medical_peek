@@ -8,6 +8,15 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Default: /dev/account-name
 
+  Environment:
+    Type: String
+    Description: AWS Environment
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+      - stage
+
   GitHubOauthToken:
     Description: GitHub OAuth Token for use by CodePipeline
     Type: 'AWS::SSM::Parameter::Value<String>'
@@ -29,10 +38,20 @@ Parameters:
     Type: String
     Default: WillCallahan
 
-  BuildSpecPath:
+  ApiBuildSpecPath:
     Description: Relative path to the buildspec.yml in the repo
     Type: String
-    Default: buildspec.yml
+    Default: medical_peek_api/buildspec.yml
+
+  WebBuildSpecPath:
+    Description: Relative path to the buildspec.yml in the repo
+    Type: String
+    Default: medical_peek_web/buildspec.yml
+
+  WebCodeS3Bucket:
+    Description: Web Code S3 Bucket Name
+    Type: String
+    Default: medical-peek-web
 
   CodePipelineArtifactPrefix:
     Description: Artifact name prefix to use in CodePipeline
@@ -94,13 +113,13 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
-        ArtifactIdentifier: !Sub ${AWS::StackName}
+        ArtifactIdentifier: !Sub ${AWS::StackName}-api
         EncryptionDisabled: false
         Type: CODEPIPELINE
       Cache:
         Location: NO_CACHE
         Type: NO_CACHE
-      Description: !Sub Medical Peek (${AWS::StackName})
+      Description: !Sub Medical Peek Api (${AWS::StackName})
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
@@ -125,13 +144,13 @@ Resources:
               !Sub ${LoggingStackName}-CodeBuildLogGroupName
           Status: ENABLED
           StreamName: !Ref MedicalPeekCodeBuildLogSteam
-      Name: !Sub ${AWS::StackName}-code-build
+      Name: !Sub ${AWS::StackName}-api-code-build
       QueuedTimeoutInMinutes: 30
       ServiceRole:
         Fn::ImportValue:
           !Sub ${SecurityStackName}-CodeBuildRoleArn
       Source:
-        BuildSpec: !Ref BuildSpecPath
+        BuildSpec: !Ref ApiBuildSpecPath
         GitCloneDepth: 0
         Type: CODEPIPELINE
       SourceVersion: !Sub refs/heads/${GitHubBranchName}
@@ -141,7 +160,67 @@ Resources:
         - Key: Provider
           Value: AWS
         - Key: Name
-          Value: !Sub ${AWS::StackName}-code-build
+          Value: !Sub ${AWS::StackName}-api-code-build
+      TimeoutInMinutes: 30
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub ${NetworkSecurityStackName}-CodeBuildSecurityGroup
+        Subnets:
+          - Fn::ImportValue:
+              !Sub ${NetworkStackName}-PrivateSubnet1
+          - Fn::ImportValue:
+              !Sub ${NetworkStackName}-PrivateSubnet2
+        VpcId:
+          Fn::ImportValue:
+            !Sub ${NetworkStackName}-Vpc
+
+  MedicalPeekWebCodeBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        ArtifactIdentifier: !Sub ${AWS::StackName}-web
+        EncryptionDisabled: false
+        Type: CODEPIPELINE
+      Cache:
+        Location: NO_CACHE
+        Type: NO_CACHE
+      Description: !Sub Medical Peek Web (${AWS::StackName})
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables:
+          - Name: STACK_NAME
+            Value: !Sub ${AWS::StackName}
+          - Name: BRANCH_NAME
+            Value: !Ref GitHubBranchName
+        Image: aws/codebuild/standard:2.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName:
+            Fn::ImportValue:
+              !Sub ${LoggingStackName}-CodeBuildLogGroupName
+          Status: ENABLED
+          StreamName: !Ref MedicalPeekCodeBuildLogSteam
+      Name: !Sub ${AWS::StackName}-web-code-build
+      QueuedTimeoutInMinutes: 30
+      ServiceRole:
+        Fn::ImportValue:
+          !Sub ${SecurityStackName}-CodeBuildRoleArn
+      Source:
+        BuildSpec: !Ref ApiBuildSpecPath
+        GitCloneDepth: 0
+        Type: CODEPIPELINE
+      SourceVersion: !Sub refs/heads/${GitHubBranchName}
+      Tags:
+        - Key: Service
+          Value: Code Build
+        - Key: Provider
+          Value: AWS
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-web-code-build
       TimeoutInMinutes: 30
       VpcConfig:
         SecurityGroupIds:
@@ -185,7 +264,7 @@ Resources:
               RunOrder: 1
         - Name: Build
           Actions:
-            - Name: BuildAction
+            - Name: BuildApiAction
               Namespace: !Sub ${CodePipelineArtifactPrefix}_build_api_ns
               Region: !Sub ${AWS::Region}
               InputArtifacts:
@@ -199,6 +278,22 @@ Resources:
                 Provider: CodeBuild
               Configuration:
                 ProjectName: !Ref MedicalPeekApiCodeBuild
+                PrimarySource: !Sub ${CodePipelineArtifactPrefix}_source
+              RunOrder: 2
+            - Name: BuildWebAction
+              Namespace: !Sub ${CodePipelineArtifactPrefix}_build_web_ns
+              Region: !Sub ${AWS::Region}
+              InputArtifacts:
+                - Name: !Sub ${CodePipelineArtifactPrefix}_source
+              OutputArtifacts:
+                - Name: !Sub ${CodePipelineArtifactPrefix}_build_web
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref MedicalPeekWebCodeBuild
                 PrimarySource: !Sub ${CodePipelineArtifactPrefix}_source
               RunOrder: 2
         - Name: Approval
@@ -217,8 +312,8 @@ Resources:
               RunOrder: 3
         - Name: Deploy
           Actions:
-            - Name: DeployAction
-              Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_ns
+            - Name: DeployApiAction
+              Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_api_ns
               Region: !Sub ${AWS::Region}
               InputArtifacts:
                 - Name: !Sub ${CodePipelineArtifactPrefix}_source
@@ -235,10 +330,46 @@ Resources:
                 RoleArn:
                   Fn::ImportValue:
                     !Sub ${SecurityStackName}-CodePipelineRoleArn
-                TemplatePath: !Sub ${CodePipelineArtifactPrefix}_source::cloudformation.yml
+                TemplatePath: !Sub ${CodePipelineArtifactPrefix}_source::medical_peek_api/cloudformation.yml
                 OutputFileName: !Sub ${CodePipelineArtifactPrefix}_stack.json
                 TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_api::cloudformation-template-configuration.json
               RunOrder: 4
+            - Name: DeployWebAction
+              Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_web_ns
+              Region: !Sub ${AWS::Region}
+              InputArtifacts:
+                - Name: !Sub ${CodePipelineArtifactPrefix}_build_web
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: REPLACE_ON_FAILURE
+                StackName: !Ref MedicalPeekStackName
+                Capabilities: CAPABILITY_IAM
+                RoleArn:
+                  Fn::ImportValue:
+                    !Sub ${SecurityStackName}-CodePipelineRoleArn
+                TemplatePath: !Sub ${CodePipelineArtifactPrefix}_source::medical_peek_web/cloudformation.yml
+                OutputFileName: !Sub ${CodePipelineArtifactPrefix}_stack.json
+                TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_api::cloudformation-template-configuration.json
+              RunOrder: 5
+            - Name: DeployWebSourceAction
+              Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_web_source_ns
+              Region: !Sub ${AWS::Region}
+              InputArtifacts:
+                - Name: !Sub ${CodePipelineArtifactPrefix}_build_web
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: S3
+              Configuration:
+                BucketName: !Sub ${Environment}.${WebCodeS3Bucket}.${AccountName}
+                Extract: false
+                ObjectKey: '*'
+              RunOrder: 6
       ArtifactStore:
         Type: S3
         Location:
