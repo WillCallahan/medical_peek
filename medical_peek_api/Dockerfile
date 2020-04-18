@@ -4,6 +4,8 @@ WORKDIR /opt/app
 
 EXPOSE 8000
 
+ENV MP_AWS_SSM_MYSQL_SECRET /dev/medical-peek/database/mysql
+
 COPY . ./
 COPY medical_peek_api/resources/start-server.sh ./
 COPY medical_peek_api/resources/nginx.default ./

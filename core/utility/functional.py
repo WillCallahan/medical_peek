@@ -237,3 +237,13 @@ def flatten(arr: List[List]) -> List:
     :return: Flattened list
     """
     return reduce(lambda x, y: x + y, arr)
+
+
+def rename_keys(iterable: dict, key_func: Callable):
+    """
+    Renames the keys in a dictionary
+    :param iterable: Dictionary to iterate through
+    :param key_func: Function to generate the new key name
+    :return: Dictionary with new key names
+    """
+    return {key_func(k): v for k, v in iterable.items()}

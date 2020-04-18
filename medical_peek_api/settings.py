@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import pymysql
 from core.utility.functional import select_keys
+from core.service.configuration import get_database_connection_string
 
 
 APP_LABEL = 'mp'
@@ -28,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'y-tuhir)&drs@w%r+(-le%rch@gu7nrvhng(0(m!(z(61(je0c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', "false").lower() == "true"
+DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
 
 ALLOWED_HOSTS = [
     # '127.0.0.1',
@@ -96,9 +97,10 @@ pymysql.version_info = (1, 3, 13, 'final', 0)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': os.path.join(BASE_DIR, "medical_peek_api/resources/data_source.cnf"),
-        }
+        **get_database_connection_string(
+            os.path.join(BASE_DIR, "medical_peek_api/resources/data_source.cnf"),
+            os.environ.get('MP_AWS_SSM_MYSQL_SECRET', '/dev/medical-peek/database/mysql')
+        )
     }
 }
 

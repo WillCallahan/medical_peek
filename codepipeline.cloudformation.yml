@@ -45,6 +45,11 @@ Parameters:
     Type: String
     Default: medical-peek/api
 
+  MySqlAwsSsmSecretName:
+    Description: AWS SSM Secret Name to connect to the MySql Database
+    Type: AWS::SSM::Parameter::Name
+    Default: /dev/medical-peek/database/mysql
+
   MedicalPeekStackName:
     Description: Name of the Medical Peek Stack to Create
     Type: String
@@ -105,6 +110,8 @@ Resources:
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ApiEcrDockerImage}
           - Name: DOCKERFILE_PATH
             Value: medical_peek_api/Dockerfile
+          - Name: MP_AWS_SSM_MYSQL_SECRET
+            Value:
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
         Image: aws/codebuild/standard:2.0
