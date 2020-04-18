@@ -33,6 +33,11 @@ Parameters:
     Description: SSL Certificate to use for the Medical Peek Api
     Default: /dev/medical-peek-api/certificate
 
+  MySqlAwsSsmSecretName:
+    Description: AWS SSM Secret Name to connect to the MySql Database
+    Type: String
+    Default: /dev/medical-peek/database/mysql
+
 Resources:
 
   MedicalPeekLoadBalancer:
@@ -195,6 +200,8 @@ Resources:
               Value: 8000
             - Name: WORKER_THREADS
               Value: 3
+            - Name: MP_AWS_SSM_MYSQL_SECRET
+              Value: !Sub ${MySqlAwsSsmSecretName}
       ExecutionRoleArn:
         Fn::ImportValue:
           !Sub ${SecurityStackName}-FargateReadonlyRoleArn

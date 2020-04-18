@@ -47,7 +47,7 @@ Parameters:
 
   MySqlAwsSsmSecretName:
     Description: AWS SSM Secret Name to connect to the MySql Database
-    Type: AWS::SSM::Parameter::Name
+    Type: String
     Default: /dev/medical-peek/database/mysql
 
   MedicalPeekStackName:
