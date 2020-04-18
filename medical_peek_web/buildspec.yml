@@ -22,6 +22,7 @@ phases:
       - IMAGE_TAG=${BUILD_VERSION:=latest}
       - echo "SOURCE_DIRECTORY ${SOURCE_DIRECTORY}"
       - echo "BUILD_VERSION ${BUILD_VERSION}"
+      - echo "CODE_S3_BUCKET ${CODE_S3_BUCKET}"
       - cd "${SOURCE_DIRECTORY}"
       - npm install
 
