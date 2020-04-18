@@ -89,7 +89,6 @@ Resources:
             Protocol: HTTPS
             Query: '#{query}'
             StatusCode: HTTP_301
-            Order: 1
       LoadBalancerArn: !Ref MedicalPeekLoadBalancer
       Port: 80
       Protocol: HTTP
@@ -102,14 +101,14 @@ Resources:
       HealthCheckIntervalSeconds: 20
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
-      HealthCheckPort: 80
+      HealthCheckPort: 8000
       HealthCheckTimeoutSeconds: 15
       HealthyThresholdCount: 2
       Matcher:
         HttpCode: 200
       Name: !Sub ${AWS::StackName}-elb-tg
       TargetType: ip
-      Port: 80
+      Port: 8000
       Protocol: HTTP
       UnhealthyThresholdCount: 5
       VpcId:
@@ -174,7 +173,7 @@ Resources:
           DisableNetworking: false
           PortMappings:
             - ContainerPort: 8000
-              HostPort: 80
+              HostPort: 8000
               Protocol: tcp
           Privileged: false
           ReadonlyRootFilesystem: false
@@ -192,7 +191,7 @@ Resources:
               awslogs-stream-prefix: !Sub ${AWS::StackName}
           Environment:
             - Name: SERVER_PORT
-              Value: 80
+              Value: 8000
             - Name: WORKER_THREADS
               Value: 3
       ExecutionRoleArn:

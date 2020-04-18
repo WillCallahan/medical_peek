@@ -19,15 +19,20 @@ Parameters:
     Type: String
     Default: master
 
+  GitHubRepoName:
+    Description: GitHub Repo Name
+    Type: String
+    Default: medical_peek
+
+  GitHubOwner:
+    Description: GitHub Repo Owner Name
+    Type: String
+    Default: WillCallahan
+
   BuildSpecPath:
     Description: Relative path to the buildspec.yml in the repo
     Type: String
     Default: buildspec.yml
-
-  RepoLocation:
-    Description: HTTPS clone URL to the repository that contains the source code and build spec
-    Type: String
-    Default: https://github.com/WillCallahan/medical_peek.git
 
   CodePipelineArtifactPrefix:
     Description: Artifact name prefix to use in CodePipeline
@@ -35,10 +40,15 @@ Parameters:
     AllowedPattern: "[a-z0-9_]*"
     Default: medical_peek_codepipeline
 
+  ApiEcrDockerImage:
+    Description: ECR Container Image to push after docker image is built
+    Type: String
+    Default: medical-peek/api
+
   MedicalPeekStackName:
     Description: Name of the Medical Peek Stack to Create
     Type: String
-    Default: medical-peek-stack
+    Default: medical-peek-api
 
   BucketStackName:
     Description: Name of the S3 Stack
@@ -75,7 +85,7 @@ Resources:
           !Sub ${LoggingStackName}-CodeBuildLogGroupName
       LogStreamName: !Sub ${AWS::StackName}-stream
 
-  MedicalPeekCodeBuild:
+  MedicalPeekApiCodeBuild:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -83,24 +93,21 @@ Resources:
         EncryptionDisabled: false
         Type: CODEPIPELINE
       Cache:
-        Location:
-          !Sub
-            - ${BucketName}/${AWS::StackName}
-            - BucketName:
-                Fn::ImportValue:
-                  !Sub ${BucketStackName}-CodeBuildCacheS3BucketName
-        Modes:
-          - LOCAL_CUSTOM_CACHE
-        Type: S3
+        Location: NO_CACHE
+        Type: NO_CACHE
       Description: !Sub Medical Peek (${AWS::StackName})
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
           - Name: STACK_NAME
             Value: !Sub ${AWS::StackName}
+          - Name: AWS_ECR_REPOSITORY_URI
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ApiEcrDockerImage}
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
-        Image: 'python:3.6-alpine'
+        Image: aws/codebuild/standard:2.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
         Type: LINUX_CONTAINER
       LogsConfig:
         CloudWatchLogs:
@@ -140,68 +147,6 @@ Resources:
           Fn::ImportValue:
             !Sub ${NetworkStackName}-Vpc
 
-  MedicalPeekEcrCodeBuild:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Artifacts:
-        ArtifactIdentifier: !Sub ${AWS::StackName}-ecr
-        EncryptionDisabled: false
-        Type: CODEPIPELINE
-      Cache:
-        Location: NO_CACHE
-        Type: NO_CACHE
-      Description: !Sub Medical Peek (${AWS::StackName}-ecr)
-      Environment:
-        ComputeType: BUILD_GENERAL1_SMALL
-        EnvironmentVariables:
-          - Name: STACK_NAME
-            Value: !Sub ${AWS::StackName}
-          - Name: AWS_ECR_REPOSITORY_URI
-            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${EcrDockerImage}
-          - Name: BRANCH_NAME
-            Value: !Ref GitHubBranchName
-        Image: aws/codebuild/standard:2.0
-        ImagePullCredentialsType: CODEBUILD
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-      LogsConfig:
-        CloudWatchLogs:
-          GroupName:
-            Fn::ImportValue:
-              !Sub ${LoggingStackName}-CodeBuildLogGroupName
-          Status: ENABLED
-          StreamName: !Ref MedicalPeekCodeBuildLogSteam
-      Name: !Sub ${AWS::StackName}-ecr-code-build
-      QueuedTimeoutInMinutes: 30
-      ServiceRole:
-        Fn::ImportValue:
-          !Sub ${SecurityStackName}-CodeBuildRoleArn
-      Source:
-        BuildSpec: !Ref BuildSpecEcrPath
-        GitCloneDepth: 0
-        Type: CODEPIPELINE
-      SourceVersion: !Sub refs/heads/${GitHubBranchName}
-      Tags:
-        - Key: Service
-          Value: Code Build
-        - Key: Provider
-          Value: AWS
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-ecr-code-build
-      TimeoutInMinutes: 30
-      VpcConfig:
-        SecurityGroupIds:
-          - Fn::ImportValue:
-              !Sub ${NetworkSecurityStackName}-CodeBuildSecurityGroup
-        Subnets:
-          - Fn::ImportValue:
-              !Sub ${NetworkStackName}-PrivateSubnet1
-          - Fn::ImportValue:
-              !Sub ${NetworkStackName}-PrivateSubnet2
-        VpcId:
-          Fn::ImportValue:
-            !Sub ${NetworkStackName}-Vpc
-
   MedicalPeekCodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -223,8 +168,8 @@ Resources:
               OutputArtifacts:
                 - Name: !Sub ${CodePipelineArtifactPrefix}_source
               Configuration:
-                Owner: WillCallahan
-                Repo: medical-peek-docker
+                Owner: !Sub ${GitHubOwner}
+                Repo: !Sub ${GitHubRepoName}
                 Branch: !Sub ${GitHubBranchName}
                 OAuthToken: !Ref GitHubOauthToken
                 PollForSourceChanges: false
@@ -232,55 +177,21 @@ Resources:
         - Name: Build
           Actions:
             - Name: BuildAction
-              Namespace: !Sub ${CodePipelineArtifactPrefix}_build_ns
+              Namespace: !Sub ${CodePipelineArtifactPrefix}_build_api_ns
               Region: !Sub ${AWS::Region}
               InputArtifacts:
                 - Name: !Sub ${CodePipelineArtifactPrefix}_source
               OutputArtifacts:
-                - Name: !Sub ${CodePipelineArtifactPrefix}_build
+                - Name: !Sub ${CodePipelineArtifactPrefix}_build_api
               ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref MedicalPeekCodeBuild
-              RunOrder: 2
-            - Name: EcrPushAction
-              Namespace: !Sub ${CodePipelineArtifactPrefix}_ecr_push_ns
-              Region: !Sub ${AWS::Region}
-              InputArtifacts:
-                - Name: !Sub ${CodePipelineArtifactPrefix}_source
-                - Name: !Sub ${CodePipelineArtifactPrefix}_build
-              OutputArtifacts:
-                - Name: !Sub ${CodePipelineArtifactPrefix}_ecr_push
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref MedicalPeekEcrCodeBuild
+                ProjectName: !Ref MedicalPeekApiCodeBuild
                 PrimarySource: !Sub ${CodePipelineArtifactPrefix}_source
-                EnvironmentVariables:
-                  !Sub
-                  - '[${Values}]'
-                  - Values:
-                      !Join
-                      - ','
-                      - - !Sub
-                          - '{"name":"${Name}","value":"${Value}","type":"PLAINTEXT"}'
-                          - Name: SOURCE_ARTIFACT_NAME
-                            Value: !Sub ${CodePipelineArtifactPrefix}_source
-                        - !Sub
-                          - '{"name":"${Name}","value":"${Value}","type":"PLAINTEXT"}'
-                          - Name: BUILD_ARTIFACT_NAME
-                            Value: !Sub ${CodePipelineArtifactPrefix}_build
-                        - !Sub
-                          - '{"name":"${Name}","value":"${Value}","type":"PLAINTEXT"}'
-                          - Name: BUILD_VERSION
-                            Value: !Sub '#{${CodePipelineArtifactPrefix}_build_ns.BUILD_VERSION}'
-              RunOrder: 3
+              RunOrder: 2
         - Name: Approval
           Actions:
             - Name: ApprovalAction
@@ -292,9 +203,9 @@ Resources:
                 Version: 1
                 Provider: Manual
               Configuration:
-                CustomData: !Sub 'Build Version: #{${CodePipelineArtifactPrefix}_build_ns.BUILD_VERSION}'
-                ExternalEntityLink: !Sub 'https://console.${AWS::Partition}.amazon.com/ecr/repositories/${EcrDockerImage}/?region=${AWS::Region}'
-              RunOrder: 4
+                CustomData: !Sub 'Build Version: #{${CodePipelineArtifactPrefix}_build_api_ns.BUILD_VERSION}'
+                ExternalEntityLink: !Sub 'https://console.${AWS::Partition}.amazon.com/ecr/repositories/${ApiEcrDockerImage}/?region=${AWS::Region}'
+              RunOrder: 3
         - Name: Deploy
           Actions:
             - Name: DeployAction
@@ -302,7 +213,7 @@ Resources:
               Region: !Sub ${AWS::Region}
               InputArtifacts:
                 - Name: !Sub ${CodePipelineArtifactPrefix}_source
-                - Name: !Sub ${CodePipelineArtifactPrefix}_ecr_push
+                - Name: !Sub ${CodePipelineArtifactPrefix}_build_api
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -317,8 +228,8 @@ Resources:
                     !Sub ${SecurityStackName}-CodePipelineRoleArn
                 TemplatePath: !Sub ${CodePipelineArtifactPrefix}_source::cloudformation.yml
                 OutputFileName: !Sub ${CodePipelineArtifactPrefix}_stack.json
-                TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_ecr_push::cloudformation-template-configuration.json
-              RunOrder: 5
+                TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_api::cloudformation-template-configuration.json
+              RunOrder: 4
       ArtifactStore:
         Type: S3
         Location:
@@ -326,5 +237,5 @@ Resources:
             !Sub ${BucketStackName}-CodePipelineBucketName
 
 Outputs:
-  MedicalPeekCodeBuildName:
-    Value: !Ref MedicalPeekCodeBuild
+  MedicalPeekApiCodeBuildName:
+    Value: !Ref MedicalPeekApiCodeBuild

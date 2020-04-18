@@ -4,8 +4,6 @@ env:
   variables:
     AWS_REGION: us-east-1
     AWS_ECR_REPOSITORY_URI: arn:<AWS_PARTITION>:ecr:<AWS_REGION>:<AWS_ACCOUNT_ID>:<ECR_REPOSITORY>
-    BUILD_ARTIFACT_NAME: <BUILD_ARTIFACT_NAME>
-    BUILD_VERSION: <BUILD_VERSION>
 
   exported-variables:
     - BUILD_VERSION
@@ -19,11 +17,11 @@ phases:
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=overlay&
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
       - SOURCE_DIRECTORY="${CODEBUILD_SRC_DIR}"
-      - BUILD_ENV_NAME="CODEBUILD_SRC_DIR_${BUILD_ARTIFACT_NAME}"
-      - BUILD_DIRECTORY=$(eval "echo \$${BUILD_ENV_NAME}")
+      - UTC_DATE=$(date --utc +%FT%H-%M-%S%Z)
+      - COMMIT_HASH=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION} | cut -c1-8)
+      - BUILD_VERSION=${BRANCH_NAME}-${UTC_DATE}-${COMMIT_HASH}
       - IMAGE_TAG=${BUILD_VERSION:=latest}
       - echo "SOURCE_DIRECTORY ${SOURCE_DIRECTORY}"
-      - echo "BUILD_ENV_NAME ${BUILD_ENV_NAME}"
       - echo "BUILD_DIRECTORY ${BUILD_DIRECTORY}"
       - echo "BUILD_VERSION ${BUILD_VERSION}"
 
