@@ -29,4 +29,4 @@ RUN apk add --no-cache --update \
   chmod -R 755 /opt/app ; \
   mkdir -p /run/nginx
 
-CMD ["/opt/app/start-server.sh"]
+CMD ["./start-server.sh"]

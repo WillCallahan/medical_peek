@@ -24,13 +24,14 @@ Parameters:
     Default: logging-stack
 
   EcrDockerImage:
-    Description: ECR Container Image of the Medical Peek
     Type: String
+    Description: ECR Container Image of the Medical Peek
     Default: medical-peek/api:latest
 
   CertificateArn:
+    Type: 'AWS::SSM::Parameter::Value<String>'
     Description: SSL Certificate to use for the Medical Peek Api
-    Type: String
+    Default: /dev/medical-peek-api/certificate
 
 Resources:
 
