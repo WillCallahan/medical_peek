@@ -16,13 +16,13 @@ phases:
       nodejs: 12
     commands:
       - SOURCE_DIRECTORY="${CODEBUILD_SRC_DIR}/medical_peek_web"
+      - BUILD_DIRECTORY="${SOURCE_DIRECTORY}/build"
       - UTC_DATE=$(date --utc +%FT%H-%M-%S%Z)
       - COMMIT_HASH=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION} | cut -c1-8)
       - BUILD_VERSION=${BRANCH_NAME}-${UTC_DATE}-${COMMIT_HASH}
       - IMAGE_TAG=${BUILD_VERSION:=latest}
       - echo "SOURCE_DIRECTORY ${SOURCE_DIRECTORY}"
       - echo "BUILD_VERSION ${BUILD_VERSION}"
-      - echo "CODE_S3_BUCKET ${CODE_S3_BUCKET}"
       - cd "${SOURCE_DIRECTORY}"
       - npm install
 
@@ -32,14 +32,12 @@ phases:
 
   post_build:
     commands:
-      - echo '{}' > cloudformation-template-configuration.json
-      - cat cloudformation-template-configuration.json
-      - aws s3 cp ./* "s3://${CODE_S3_BUCKET}/"
+      - echo '{}' > "${BUILD_DIRECTORY}/cloudformation-template-configuration.json"
+      - cat "${BUILD_DIRECTORY}/cloudformation-template-configuration.json"
 
 artifacts:
-  base-directory: ${SOURCE_DIRECTORY}
+  base-directory: ${BUILD_DIRECTORY}
   files:
-    - 'cloudformation-template-configuration.json'
-    - 'build/*'
+    - '*'
   discard-paths: yes
   name: medical-peek-web-standalone-${BUILD_VERSION}

@@ -193,8 +193,6 @@ Resources:
             Value: !Sub ${AWS::StackName}
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
-          - Name: CODE_S3_BUCKET
-            Value: !Sub ${Environment}.${GitHubBranchName}.medical-peek-web.callahanwilliam
         Image: aws/codebuild/standard:4.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
