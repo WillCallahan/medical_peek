@@ -249,11 +249,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          SourceSecurityGroupId: !Ref MedicalPeekLoabBalancerSecurityGroup
+          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          SourceSecurityGroupId: !Ref MedicalPeekLoabBalancerSecurityGroup
+          CidrIp: 0.0.0.0/0
       VpcId:
         Fn::ImportValue:
           !Sub ${NetworkStackName}-Vpc
