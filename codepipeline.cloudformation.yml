@@ -111,7 +111,7 @@ Resources:
           - Name: DOCKERFILE_PATH
             Value: medical_peek_api/Dockerfile
           - Name: MP_AWS_SSM_MYSQL_SECRET
-            Value:
+            Value: !Sub ${MySqlAwsSsmSecretName}
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
         Image: aws/codebuild/standard:2.0
