@@ -103,6 +103,8 @@ Resources:
             Value: !Sub ${AWS::StackName}
           - Name: AWS_ECR_REPOSITORY_URI
             Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ApiEcrDockerImage}
+          - Name: DOCKERFILE_PATH
+            Value: medical_peek_api/Dockerfile
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
         Image: aws/codebuild/standard:2.0
