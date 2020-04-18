@@ -193,7 +193,7 @@ Resources:
             Value: !Sub ${AWS::StackName}
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
-        Image: aws/codebuild/standard:2.0
+        Image: aws/codebuild/standard:4.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
         Type: LINUX_CONTAINER
@@ -210,7 +210,7 @@ Resources:
         Fn::ImportValue:
           !Sub ${SecurityStackName}-CodeBuildRoleArn
       Source:
-        BuildSpec: !Ref ApiBuildSpecPath
+        BuildSpec: !Ref WebBuildSpecPath
         GitCloneDepth: 0
         Type: CODEPIPELINE
       SourceVersion: !Sub refs/heads/${GitHubBranchName}

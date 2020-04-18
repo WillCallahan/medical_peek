@@ -23,7 +23,7 @@ phases:
       - echo "SOURCE_DIRECTORY ${SOURCE_DIRECTORY}"
       - echo "BUILD_VERSION ${BUILD_VERSION}"
       - cd "${SOURCE_DIRECTORY}"
-      - npm run install
+      - npm install
 
   build:
     commands:
