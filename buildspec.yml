@@ -34,7 +34,7 @@ phases:
   build:
     commands:
       - cd "${BUILD_DIRECTORY}"
-      - docker build -t ${AWS_ECR_REPOSITORY_URI}:latest -f ${DOCKER_FILE_PATH} .
+      - docker build -t ${AWS_ECR_REPOSITORY_URI}:latest -f ${DOCKERFILE_PATH} .
       - docker tag ${AWS_ECR_REPOSITORY_URI}:latest ${AWS_ECR_REPOSITORY_URI}:${IMAGE_TAG}
 
   post_build:
