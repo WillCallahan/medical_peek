@@ -150,7 +150,7 @@ Resources:
                 !Sub ${NetworkStackName}-PrivateSubnet2
       LoadBalancers:
         - ContainerName: !Sub ${AWS::StackName}-ecs-cd
-          ContainerPort: 80
+          ContainerPort: 8000
           TargetGroupArn: !Ref MedicalPeekTargetGroup
       Tags:
         - Key: Service
