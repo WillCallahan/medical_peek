@@ -364,7 +364,7 @@ Resources:
                 OutputFileName: !Sub ${CodePipelineArtifactPrefix}_stack.json
                 ParameterOverrides: !Sub '{"Environment":"${Environment}","BranchName":"${GitHubBranchName}"}'
                 TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_web::cloudformation-template-configuration.json
-              RunOrder: 5
+              RunOrder: 4
             - Name: DeployWebSourceAction
               Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_web_source_ns
               Region: !Sub ${AWS::Region}
@@ -378,7 +378,7 @@ Resources:
               Configuration:
                 BucketName: !Sub ${Environment}.${GitHubBranchName}.${WebCodeS3Bucket}.${AccountName}
                 Extract: true
-              RunOrder: 6
+              RunOrder: 5
       ArtifactStore:
         Type: S3
         Location:
