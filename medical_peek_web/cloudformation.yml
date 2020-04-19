@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
 Parameters:
+  AccountName:
+    Description: Name of the account
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: /dev/account-name
+
   Environment:
     Type: String
     Description: AWS Environment
@@ -12,11 +17,16 @@ Parameters:
     Type: String
     Description: Version Control Branch Name
 
+  CertificateArn:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Description: SSL Certificate to use for the Medical Peek Api
+    Default: /callahanwilliam/wildcard-certificate
+
 Resources:
   MedicalPeekStaticFilesBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub ${Environment}.${BranchName}.medical-peek-web.callahanwilliam
+      BucketName: !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}
       WebsiteConfiguration:
         IndexDocument: index.html
 
@@ -24,12 +34,14 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Aliases:
+          - !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}.com.
         Origins:
           - DomainName: !GetAtt MedicalPeekStaticFilesBucket.DomainName
             Id: !Ref MedicalPeekStaticFilesBucket
             S3OriginConfig:
               OriginAccessIdentity: ''
-        Enabled: 'true'
+        Enabled: true
         DefaultRootObject: index.html
         DefaultCacheBehavior:
           AllowedMethods:
@@ -44,7 +56,10 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
         ViewerCertificate:
-          CloudFrontDefaultCertificate: 'true'
+          CloudFrontDefaultCertificate: false
+          ViewerCertificate: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2018
 
   MedicalPeekStaticFilesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -68,5 +83,5 @@ Resources:
         HostedZoneId: Z2FDTNDATAQYW2
         DNSName: !GetAtt MedicalPeedCloudFrontDistrobution.DomainName
       HostedZoneId: Z31CWL47Z21FZC
-      Name: !Sub ${Environment}.${BranchName}.medical-peek-web.callahanwilliam.com.
+      Name: !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}.com.
       Type: A
