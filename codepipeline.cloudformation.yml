@@ -198,6 +198,8 @@ Resources:
             Value: !Sub ${AWS::StackName}
           - Name: BRANCH_NAME
             Value: !Ref GitHubBranchName
+          - Name: MEDICAL_PEEK_API_URL
+            Value: !Sub https://${Environment}-${GitHubBranchName}-medical-peek-api.${AccountName}.com
         Image: aws/codebuild/standard:4.0
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true

@@ -4,11 +4,11 @@ const localConfiguration = {
 };
 
 const devConfiguration = {
-	medicalPeekAddress: 'http://127.0.0.1:8000'
+	medicalPeekAddress: process.env.MEDICAL_PEEK_API_URL || 'http://127.0.0.1:8000'
 };
 
 const prodConfiguration = {
-	medicalPeekAddress: 'https://medical-peek-api.callahanwilliam.com'
+	medicalPeekAddress: process.env.MEDICAL_PEEK_API_URL || 'https://medical-peek-api.callahanwilliam.com'
 };
 
 const getConfiguration = () => {

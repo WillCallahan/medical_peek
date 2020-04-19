@@ -69,6 +69,16 @@ Resources:
           Value: !Sub ${AWS::StackName}-elb
       Type: application
 
+  MedicalPeekApiRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        HostedZoneId: !GetAtt MedicalPeekLoadBalancer.CanonicalHostedZoneNameID
+        DNSName: !GetAtt MedicalPeekLoadBalancer.DNSName
+      HostedZoneId: Z2FDTNDATAQYW2
+      Name: !Sub ${Environment}-${BranchName}-medical-peek-api.${AccountName}.com.
+      Type: A
+
   MedicalPeekHttpsListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -319,6 +329,16 @@ Resources:
           Value: !Sub ${AWS::StackName}-task-role
 
 Outputs:
-  MedicalPeekLoadBalancerDnsName:
+  MedicalPeekApiLoadBalancerDnsName:
     Description: Medical Peek Load Balancer Dns Name
     Value: !GetAtt MedicalPeekLoadBalancer.DNSName
+
+  MedicalPeekApiRoute53DnsName:
+    Description: Medical Peek Route 53 Dns Name
+    Value: !Ref MedicalPeekApiRoute53
+
+  MedicalPeekApiUrl:
+    Description: Medical Peek Route 53 Dns Name
+    Value: !Sub
+      - https://${DnsName}/
+      - DnsName: !Ref MedicalPeekApiRoute53

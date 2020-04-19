@@ -61,7 +61,7 @@ Resources:
             - OPTIONS
           TargetOriginId: !Ref MedicalPeekStaticFilesBucket
           ForwardedValues:
-            QueryString: 'false'
+            QueryString: false
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
@@ -80,11 +80,11 @@ Resources:
           - Sid: ReadAccess
             Action:
               - s3:GetObject
-            Effect: "Allow"
+            Effect: Allow
             Resource: !Sub
-              - "${BucketArn}/*"
+              - '${BucketArn}/*'
               - BucketArn: !GetAtt MedicalPeekStaticFilesBucket.Arn
-            Principal: "*"
+            Principal: '*'
 
   MedicalPeekRoute53:
     Type: AWS::Route53::RecordSet
