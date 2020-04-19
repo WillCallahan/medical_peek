@@ -68,5 +68,5 @@ Resources:
         HostedZoneId: Z2FDTNDATAQYW2
         DNSName: !GetAtt MedicalPeedCloudFrontDistrobution.DomainName
       HostedZoneId: Z31CWL47Z21FZC
-      Name: !Sub ${Environment}.${BranchName}.medical-peek-web.callahanwilliam.
+      Name: !Sub ${Environment}.${BranchName}.medical-peek-web.callahanwilliam.com.
       Type: A
