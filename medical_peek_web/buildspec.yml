@@ -38,6 +38,6 @@ phases:
 artifacts:
   base-directory: ${BUILD_DIRECTORY}
   files:
-    - '*'
+    - '**/*'
   discard-paths: yes
   name: medical-peek-web-standalone-${BUILD_VERSION}
