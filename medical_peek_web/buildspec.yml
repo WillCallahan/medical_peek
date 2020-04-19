@@ -39,5 +39,5 @@ artifacts:
   base-directory: ${BUILD_DIRECTORY}
   files:
     - '**/*'
-  discard-paths: yes
+  discard-paths: no
   name: medical-peek-web-standalone-${BUILD_VERSION}
