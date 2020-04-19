@@ -73,7 +73,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       AliasTarget:
-        HostedZoneId: !GetAtt MedicalPeekLoadBalancer.CanonicalHostedZoneNameID
+        HostedZoneId: !GetAtt MedicalPeekLoadBalancer.CanonicalHostedZoneID
         DNSName: !GetAtt MedicalPeekLoadBalancer.DNSName
       HostedZoneId: Z2FDTNDATAQYW2
       Name: !Sub ${Environment}-${BranchName}-medical-peek-api.${AccountName}.com.
