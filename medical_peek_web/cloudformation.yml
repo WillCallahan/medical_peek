@@ -29,6 +29,8 @@ Resources:
       BucketName: !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}
       WebsiteConfiguration:
         IndexDocument: index.html
+      VersioningConfiguration:
+        Status: Enabled
       CorsConfiguration:
         CorsRules:
           - AllowedMethods:
