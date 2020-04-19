@@ -31,7 +31,7 @@ Parameters:
   CertificateArn:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: SSL Certificate to use for the Medical Peek Api
-    Default: /callahanwilliam/wildcard-certificate
+    Default: /dev/callahanwilliam/wildcard-certificate
 
   MySqlAwsSsmSecretName:
     Description: AWS SSM Secret Name to connect to the MySql Database

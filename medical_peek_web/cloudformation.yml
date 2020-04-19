@@ -20,7 +20,7 @@ Parameters:
   CertificateArn:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Description: SSL Certificate to use for the Medical Peek Api
-    Default: /callahanwilliam/wildcard-certificate
+    Default: /dev/callahanwilliam/wildcard-certificate
 
 Resources:
   MedicalPeekStaticFilesBucket:
