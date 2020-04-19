@@ -24,18 +24,27 @@ Parameters:
 
 Resources:
   MedicalPeekStaticFilesBucket:
-    Type: 'AWS::S3::Bucket'
+    Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}
       WebsiteConfiguration:
         IndexDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods:
+              - GET
+              - HEAD
+            AllowedOrigins:
+              - '*'
+            AllowedHeaders:
+              - '*'
 
   MedicalPeedCloudFrontDistrobution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Aliases:
-          - !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}.com.
+          - !Sub ${Environment}-${BranchName}-medical-peek-web.${AccountName}.com
         Origins:
           - DomainName: !GetAtt MedicalPeekStaticFilesBucket.DomainName
             Id: !Ref MedicalPeekStaticFilesBucket
@@ -56,8 +65,7 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
         ViewerCertificate:
-          CloudFrontDefaultCertificate: false
-          ViewerCertificate: !Ref CertificateArn
+          AcmCertificateArn: !Ref CertificateArn
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2018
 
@@ -83,5 +91,5 @@ Resources:
         HostedZoneId: Z2FDTNDATAQYW2
         DNSName: !GetAtt MedicalPeedCloudFrontDistrobution.DomainName
       HostedZoneId: Z31CWL47Z21FZC
-      Name: !Sub ${Environment}.${BranchName}.medical-peek-web.${AccountName}.com.
+      Name: !Sub ${Environment}-${BranchName}-medical-peek-web.${AccountName}.com.
       Type: A

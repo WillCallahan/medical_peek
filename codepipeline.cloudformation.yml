@@ -374,8 +374,7 @@ Resources:
                 Provider: S3
               Configuration:
                 BucketName: !Sub ${Environment}.${GitHubBranchName}.${WebCodeS3Bucket}.${AccountName}
-                Extract: false
-                ObjectKey: '*'
+                Extract: true
               RunOrder: 6
       ArtifactStore:
         Type: S3
