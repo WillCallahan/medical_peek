@@ -373,7 +373,7 @@ Resources:
                 Version: 1
                 Provider: S3
               Configuration:
-                BucketName: !Sub ${Environment}.${WebCodeS3Bucket}.${AccountName}
+                BucketName: !Sub ${Environment}.${GitHubBranchName}.${WebCodeS3Bucket}.${AccountName}
                 Extract: false
                 ObjectKey: '*'
               RunOrder: 6
