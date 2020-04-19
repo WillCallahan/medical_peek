@@ -92,7 +92,7 @@ Resources:
       AliasTarget:
         HostedZoneId: !GetAtt MedicalPeekLoadBalancer.CanonicalHostedZoneID
         DNSName: !GetAtt MedicalPeekLoadBalancer.DNSName
-      HostedZoneId: Z2FDTNDATAQYW2
+      HostedZoneId: Z31CWL47Z21FZC
       Name: !Sub ${Environment}-${BranchName}-medical-peek-api.${AccountName}.com.
       Type: A
 
