@@ -3,6 +3,23 @@ Description: >
   Medical Peek ECS Stack
 
 Parameters:
+  AccountName:
+    Description: Name of the account
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: /dev/account-name
+
+  Environment:
+    Type: String
+    Description: AWS Environment
+    AllowedValues:
+      - dev
+      - prod
+      - stage
+
+  BranchName:
+    Type: String
+    Description: Version Control Branch Name
+
   NetworkStackName:
     Type: String
     Description: Name of the Network Stack

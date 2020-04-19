@@ -13,12 +13,17 @@ const withApiClient = (WrappedComponent, timeout = 1000) => (props) => {
 	});
 
 	apiClient.interceptors.response.use((response) => {
+		console.debug('Pulling response data from response', response);
 		if (_.has(response, 'data')) {
+			console.debug('Response has data property; returning data', response.data);
 			return response.data;
 		} else {
 			console.warn('Unable to get the response data', response);
 			return response;
 		}
+	}, error => {
+		console.error('An error occurred during the processing of an AJAX request', error);
+		return Promise.reject(error);
 	});
 
 	const childProps = {

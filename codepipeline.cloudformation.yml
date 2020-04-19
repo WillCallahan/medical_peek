@@ -339,6 +339,7 @@ Resources:
                     !Sub ${SecurityStackName}-CodePipelineRoleArn
                 TemplatePath: !Sub ${CodePipelineArtifactPrefix}_source::medical_peek_api/cloudformation.yml
                 OutputFileName: !Sub ${CodePipelineArtifactPrefix}_stack.json
+                ParameterOverrides: !Sub '{"Environment":"${Environment}","BranchName":"${GitHubBranchName}"}'
                 TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_api::cloudformation-template-configuration.json
               RunOrder: 4
             - Name: DeployWebAction
