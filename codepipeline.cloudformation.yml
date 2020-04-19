@@ -69,10 +69,15 @@ Parameters:
     Type: String
     Default: /dev/medical-peek/database/mysql
 
-  MedicalPeekStackName:
+  MedicalPeekApiStackName:
     Description: Name of the Medical Peek Stack to Create
     Type: String
     Default: medical-peek-api
+
+  MedicalPeekWebStackName:
+    Description: Name of the Medical Peek Stack to Create
+    Type: String
+    Default: medical-peek-web
 
   BucketStackName:
     Description: Name of the S3 Stack
@@ -325,8 +330,8 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
-                StackName: !Ref MedicalPeekStackName
-                Capabilities: CAPABILITY_IAM
+                StackName: !Ref MedicalPeekApiStackName
+                Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn:
                   Fn::ImportValue:
                     !Sub ${SecurityStackName}-CodePipelineRoleArn
@@ -338,6 +343,7 @@ Resources:
               Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_web_ns
               Region: !Sub ${AWS::Region}
               InputArtifacts:
+                - Name: !Sub ${CodePipelineArtifactPrefix}_source
                 - Name: !Sub ${CodePipelineArtifactPrefix}_build_web
               ActionTypeId:
                 Category: Deploy
@@ -346,14 +352,15 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
-                StackName: !Ref MedicalPeekStackName
-                Capabilities: CAPABILITY_IAM
+                StackName: !Ref MedicalPeekWebStackName
+                Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn:
                   Fn::ImportValue:
                     !Sub ${SecurityStackName}-CodePipelineRoleArn
                 TemplatePath: !Sub ${CodePipelineArtifactPrefix}_source::medical_peek_web/cloudformation.yml
                 OutputFileName: !Sub ${CodePipelineArtifactPrefix}_stack.json
-                TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_api::cloudformation-template-configuration.json
+                ParameterOverrides: !Sub '{"Environment":"${Environment}","BranchName":"${GitHubBranchName}"}'
+                TemplateConfiguration: !Sub ${CodePipelineArtifactPrefix}_build_web::cloudformation-template-configuration.json
               RunOrder: 5
             - Name: DeployWebSourceAction
               Namespace: !Sub ${CodePipelineArtifactPrefix}_deploy_web_source_ns
