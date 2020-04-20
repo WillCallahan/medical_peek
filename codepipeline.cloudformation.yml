@@ -332,7 +332,7 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
-                StackName: !Ref MedicalPeekApiStackName
+                StackName: !Sub ${Environment}-${GitHubBranchName}-${MedicalPeekApiStackName}
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn:
                   Fn::ImportValue:
@@ -355,7 +355,7 @@ Resources:
                 Provider: CloudFormation
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
-                StackName: !Ref MedicalPeekWebStackName
+                StackName: !Sub ${Environment}-${GitHubBranchName}-${MedicalPeekWebStackName}
                 Capabilities: CAPABILITY_NAMED_IAM
                 RoleArn:
                   Fn::ImportValue:
