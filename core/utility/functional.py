@@ -247,3 +247,56 @@ def rename_keys(iterable: dict, key_func: Callable):
     :return: Dictionary with new key names
     """
     return {key_func(k): v for k, v in iterable.items()}
+
+
+def single(match_func: callable, iterable):
+    """
+    Gets the first instance of a match provided with the true response of the match_func
+    :param match_func: Function called for each element in the iterable
+    :param iterable: Iterable to iterate through
+    :return: First matching element or None if there is no match
+    """
+    if not iterable:
+        return None
+    for element in iterable:
+        is_match = match_func(element)
+        if is_match:
+            return element
+    return None
+
+
+def first(iterable):
+    """
+    Gets the first element from an iterable. If there are no items or there
+    are not enough items, then None will be returned.
+    :param iterable: Iterable
+    :return: First element from the iterable
+    """
+    if iterable is None or len(iterable) == 0:
+        return None
+    return iterable[0]
+
+
+def second(iterable):
+    """
+    Gets the second element from an iterable. If there are no items are not
+    enough items, then None will be returned.
+    :param iterable: Iterable
+    :return: Second element from the iterable
+    """
+    if iterable is None or len(iterable) < 1:
+        return None
+    return iterable[1]
+
+
+def keys(iterable):
+    """
+    Gets the keys from a dictionary or the first item of an iterable of iterables
+    :param iterable: Iterable to get keys from
+    :return: Keys from the iterable
+    """
+    if iterable is None:
+        return []
+    if isinstance(iterable, dict):
+        return iterable.keys()
+    return [first(o) for o in iterable]
