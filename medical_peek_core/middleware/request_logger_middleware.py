@@ -1,6 +1,6 @@
 import logging
 
-from core.middleware.core_middleware import HookMiddleware
+from medical_peek_core.middleware.core_middleware import HookMiddleware
 
 logger = logging.getLogger(__name__)
 

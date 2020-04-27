@@ -4,7 +4,7 @@ from pyquery import PyQuery
 from lxml import etree
 from typing import List
 
-from core.utility.functional import thread_first, join, partition, second, first
+from medical_peek_core.utility.functional import thread_first, join, partition, second, first
 from medical_peek_scrapper.services.serializers import JObjectSerializer
 
 logger = logging.getLogger(__name__)

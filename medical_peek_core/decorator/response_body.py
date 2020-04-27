@@ -4,8 +4,8 @@ import logging
 from django.core import serializers
 from django.http import HttpResponse
 
-from core.exceptions.types import UnexpectedTypeError
-from core.service.response_entity import ResponseEntity
+from medical_peek_core.exceptions.types import UnexpectedTypeError
+from medical_peek_core.service.response_entity import ResponseEntity
 
 logger = logging.getLogger(__name__)
 

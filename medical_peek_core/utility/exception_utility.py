@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied as RestPermissionDenied
 
-from core.model.j_send import JSend
+from medical_peek_core.model.j_send import JSend
 
 logger = logging.getLogger(__name__)
 

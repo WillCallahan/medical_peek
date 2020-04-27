@@ -5,8 +5,8 @@ from django.http import JsonResponse
 from django.views.defaults import server_error, page_not_found
 from rest_framework import status
 
-from core.model.j_send import JSend, JSendSerializer
-from core.utility.exception_utility import ExceptionUtility
+from medical_peek_core.model.j_send import JSend, JSendSerializer
+from medical_peek_core.utility.exception_utility import ExceptionUtility
 
 logger = logging.getLogger(__name__)
 

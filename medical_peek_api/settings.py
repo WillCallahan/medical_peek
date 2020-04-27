@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import pymysql
-from core.utility.functional import select_keys
-from core.service.configuration import get_database_connection_string
+from medical_peek_core.utility.functional import select_keys
+from medical_peek_core.service.configuration import get_database_connection_string
 
 
 APP_LABEL = 'mp'
@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # 'core.middleware.exception_handler_middleware.ExceptionMiddleware',
+    # 'medical_peek_core.middleware.exception_handler_middleware.ExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -64,7 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.request_logger_middleware.RequestLogMiddleware',
+    'medical_peek_core.middleware.request_logger_middleware.RequestLogMiddleware',
 ]
 
 ROOT_URLCONF = 'medical_peek_api.urls'
@@ -175,7 +175,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FileUploadParser',
     ),
     'DEFAULT_RENDERER_CLASSES': (
-        'core.utility.json_renderer.JSendCamelCaseJsonRenderer',
+        'medical_peek_core.utility.json_renderer.JSendCamelCaseJsonRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
@@ -270,7 +270,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'core': {
+        'medical_peek_core': {
             'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'DEBUG',
             'propagate': True,

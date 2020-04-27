@@ -3,9 +3,9 @@ import logging
 from django.http import JsonResponse
 from rest_framework import status
 
-from core.middleware.core_middleware import HookMiddleware
-from core.model.j_send import JSendSerializer
-from core.utility.exception_utility import ExceptionUtility
+from medical_peek_core.middleware.core_middleware import HookMiddleware
+from medical_peek_core.model.j_send import JSendSerializer
+from medical_peek_core.utility.exception_utility import ExceptionUtility
 
 logger = logging.getLogger(__name__)
 

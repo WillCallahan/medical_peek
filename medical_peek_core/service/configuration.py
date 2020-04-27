@@ -1,7 +1,7 @@
 import logging
 import os
-from core.aws.ssm import get_secret_kvp
-from core.utility.functional import rename_keys
+from medical_peek_core.aws.ssm import get_secret_kvp
+from medical_peek_core.utility.functional import rename_keys
 
 logger = logging.getLogger(__name__)
 

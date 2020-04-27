@@ -7,9 +7,9 @@ from PIL import Image
 
 from django.core.files import File
 from pdf2image import convert_from_bytes
-from core.utility.file_utility import get_extension
-from core.aws.textract import extract_tables_from_byte_array
-from core.utility.functional import thread_first, flatten, log_message
+from medical_peek_core.utility.file_utility import get_extension
+from medical_peek_core.aws.textract import extract_tables_from_byte_array
+from medical_peek_core.utility.functional import thread_first, flatten, log_message
 
 logger = logging.getLogger(__name__)
 

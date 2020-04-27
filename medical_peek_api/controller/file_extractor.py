@@ -10,9 +10,9 @@ from rest_framework.parsers import FileUploadParser, FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.model.j_send import JSend
-from core.service.generic_extractor import extract_tables_from_file
-from core.utility.functional import thread_first
+from medical_peek_core.model.j_send import JSend
+from medical_peek_core.service.generic_extractor import extract_tables_from_file
+from medical_peek_core.utility.functional import thread_first
 from medical_peek_api.model.dmo.file_extractor import FileExtractor, FileExtractorSerializer
 
 logger = logging.getLogger(__name__)

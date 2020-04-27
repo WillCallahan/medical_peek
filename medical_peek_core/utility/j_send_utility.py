@@ -1,4 +1,4 @@
-from core.model.j_send import JSend
+from medical_peek_core.model.j_send import JSend
 
 
 class JSendUtility(object):
@@ -26,5 +26,5 @@ class JSendUtility(object):
         :return: String JSend Status string
         :rtype: str
         """
-        from core.utility.exception_utility import ExceptionUtility
+        from medical_peek_core.utility.exception_utility import ExceptionUtility
         return JSend.Status.error if ExceptionUtility.is_error(status_code) else JSend.Status.success

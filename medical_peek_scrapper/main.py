@@ -1,7 +1,7 @@
 import json
 import logging
 
-from core.aws.es import create_index, store_doc
+from medical_peek_core.aws.es import create_index, store_doc
 from medical_peek_scrapper import settings
 from medical_peek_scrapper.etl.http_extractor import scrape_product
 from medical_peek_scrapper.etl.html_transformer import transform_product, MckessonProduct

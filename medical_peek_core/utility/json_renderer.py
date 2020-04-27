@@ -3,8 +3,8 @@ from djangorestframework_camel_case.util import camelize
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 
-from core.model.j_send import JSend, JSendSerializer
-from core.utility.j_send_utility import JSendUtility
+from medical_peek_core.model.j_send import JSend, JSendSerializer
+from medical_peek_core.utility.j_send_utility import JSendUtility
 
 
 class JSendJsonRenderer(JSONRenderer):

@@ -3,7 +3,7 @@ from rest_framework import permissions
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
-from core.service.url import UrlProperty
+from medical_peek_core.service.url import UrlProperty
 from medical_peek_api.model.dmo.medical_resource import MedicalResource, MedicalResourceSerializer
 
 

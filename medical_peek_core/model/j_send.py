@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.service.generic_serializers import ListOrDictField
+from medical_peek_core.service.generic_serializers import ListOrDictField
 
 
 class Link:
