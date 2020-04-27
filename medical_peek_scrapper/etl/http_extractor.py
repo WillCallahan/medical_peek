@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def _build_product_url(base_url: str, product_id: int):
-    return f'{base_url.rstrip("/")}/{product_id:06}'
+    return f'{base_url.rstrip("/")}/{product_id:07}'
 
 
 def scrape_product(base_url, product_id):
@@ -16,6 +16,6 @@ def scrape_product(base_url, product_id):
 
 
 def scrape_all_products(base_url):
-    product_ids = range(1, 200000)
+    product_ids = range(1, 2000000)
     responses = [scrape_product(base_url, product_id) for product_id in product_ids]
     return responses

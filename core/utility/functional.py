@@ -300,3 +300,12 @@ def keys(iterable):
     if isinstance(iterable, dict):
         return iterable.keys()
     return [first(o) for o in iterable]
+
+
+def partition(length, iterable: List):
+    if not iterable:
+        return []
+    result = []
+    for i in range(0, len(iterable), length):
+        result.append(iterable[i:min(len(iterable), i + length)])
+    return result
