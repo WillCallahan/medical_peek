@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'medical_peek_core',
+    'medical_peek_scrapper',
     'medical_peek_api',
 ]
 
@@ -272,6 +273,11 @@ LOGGING = {
             'propagate': True,
         },
         'medical_peek_core': {
+            'handlers': DEFAULT_LOG_HANDLERS,
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'medical_peek_scrapper': {
             'handlers': DEFAULT_LOG_HANDLERS,
             'level': 'DEBUG',
             'propagate': True,

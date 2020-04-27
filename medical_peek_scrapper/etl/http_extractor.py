@@ -1,4 +1,6 @@
 import logging
+from typing import Callable, List
+
 import requests
 
 
@@ -10,12 +12,13 @@ def _build_product_url(base_url: str, product_id: int):
 
 
 def scrape_product(base_url, product_id):
-    response = requests.get(_build_product_url(base_url, product_id))  # type: requests.Response
+    product_url = _build_product_url(base_url, product_id)
+    logger.debug(f'Extracting product information for "{product_url}"')
+    response = requests.get(product_url)  # type: requests.Response
     response_text = response.text
-    return response_text
+    return product_url, response_text
 
 
-def scrape_all_products(base_url):
-    product_ids = range(1, 2000000)
-    responses = [scrape_product(base_url, product_id) for product_id in product_ids]
-    return responses
+def scrape_all_products_lazy(base_url, min_product_id, max_product_id) -> List[Callable]:
+    for product_id in range(min_product_id, max_product_id):
+        yield scrape_product(base_url, product_id)

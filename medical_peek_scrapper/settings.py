@@ -6,3 +6,5 @@ ES_HOSTS = [
         'port': 443
     }
 ]
+
+PARALLEL_MAX_THREADS = 15

@@ -5,22 +5,9 @@ from lxml import etree
 from typing import List
 
 from medical_peek_core.utility.functional import thread_first, join, partition, second, first
-from medical_peek_scrapper.services.serializers import JObjectSerializer
+from medical_peek_scrapper.model.product import MckessonProduct
 
 logger = logging.getLogger(__name__)
-
-
-class MckessonProduct(JObjectSerializer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.title = ''
-        self.invoice_title = ''
-        self.manufacturer_id = ''
-        self.description = ''
-        self.product_id = ''
-        self.features = []
-        self.specifications = []
-        self.more_information = []
 
 
 def get_product_id(py_query: PyQuery):
