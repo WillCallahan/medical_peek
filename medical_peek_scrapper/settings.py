@@ -1,4 +1,10 @@
+import os
+
+
 SCRAPE_URL = 'https://mms.mckesson.com/product'
+
+MIN_PRODUCT_ID = int(os.environ.get('MIN_PRODUCT_ID', 1024361))
+MAX_PRODUCT_ID = int(os.environ.get('MAX_PRODUCT_ID', 1050000))
 
 ES_HOSTS = [
     {
