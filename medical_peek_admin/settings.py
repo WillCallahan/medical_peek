@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from medical_peek_core.service.configuration import get_database_connection_string_postgresql
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -77,10 +79,11 @@ WSGI_APPLICATION = 'medical_peek_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': os.path.join(BASE_DIR, "medical_peek_api/resources/data_source.cnf"),
-        }
+        'ENGINE': 'django.db.backends.postgresql',
+        **get_database_connection_string_postgresql(
+            os.path.join(BASE_DIR, "medical_peek_api/resources/data_source.ini"),
+            'postgresql'
+        )
     }
 }
 

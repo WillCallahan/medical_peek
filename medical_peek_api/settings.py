@@ -11,10 +11,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-import pymysql
 from medical_peek_core.utility.functional import select_keys
-from medical_peek_core.service.configuration import get_database_connection_string
-
+from medical_peek_core.service.configuration import get_database_connection_string, \
+    get_database_connection_string_postgresql
 
 APP_LABEL = 'mp'
 
@@ -93,15 +92,12 @@ WSGI_APPLICATION = 'medical_peek_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-pymysql.install_as_MySQLdb()
-pymysql.version_info = (1, 3, 13, 'final', 0)
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        **get_database_connection_string(
-            os.path.join(BASE_DIR, "medical_peek_api/resources/data_source.cnf"),
-            os.environ.get('MP_AWS_SSM_MYSQL_SECRET', '/dev/medical-peek/database/mysql')
+        'ENGINE': 'django.db.backends.postgresql',
+        **get_database_connection_string_postgresql(
+            os.path.join(BASE_DIR, "medical_peek_api/resources/data_source.ini"),
+            'postgresql'
         )
     }
 }

@@ -8,7 +8,7 @@ class MedicalItem(models.Model):
     id = models.AutoField(auto_created = True, default = None, primary_key = True)
     nomenclature = models.CharField(max_length = 4096, null = True, blank = True)
     description = models.TextField(null = True)
-    nsn = models.IntegerField(max_length = 13, null = True)
+    nsn = models.IntegerField(null = True)
     msn = models.CharField(max_length = 1024)
     medical_resource = models.ForeignKey(
         MedicalResource,

@@ -1,5 +1,6 @@
 import logging
 import os
+import configparser
 from medical_peek_core.aws.ssm import get_secret_kvp
 from medical_peek_core.utility.functional import rename_keys
 
@@ -32,4 +33,22 @@ def get_database_connection_string(connection_file_path, ssm_parameter_name):
     raw_connection_params = get_secret_kvp(ssm_parameter_name)
     connection_params = rename_keys(raw_connection_params, lambda k: str(k).upper())
     logger.info('Found database connection info in AWS SSM')
+    return connection_params
+
+
+def get_database_connection_string_postgresql(connection_file_path, section = 'postgresql'):
+    """
+    Reads a database configuration file for PostgreSql
+
+    :param connection_file_path: Path to the PostgreSql database connection
+    :param section: Section in the configuration file containing the database configuration
+    """
+    parser = configparser.ConfigParser()
+    parser.read(connection_file_path)
+
+    if section not in parser:
+        raise ValueError(f'Section not found in configuration file  Section={section} File={connection_file_path}')
+
+    connection_params = rename_keys(dict(parser[section]), lambda k: str(k).upper())
+    logger.info('Found connection parameters')
     return connection_params

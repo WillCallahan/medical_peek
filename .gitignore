@@ -8,6 +8,7 @@ __pycache__/
 
 # Database
 *.cnf
+*.ini
 
 # File Updalods
 files
